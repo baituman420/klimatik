@@ -1683,7 +1683,7 @@ function App() {
             className={`nav-link ${currentView === 'admin' ? 'active' : ''}`}
             onClick={() => {
               setCurrentView('admin');
-              setAdminTab('analytics');
+              setAdminTab('dashboard');
             }}
           >
             Portal Marta (Administración)
@@ -1704,6 +1704,7 @@ function App() {
           onClick={() => {
             if (currentView === 'landing') {
               setCurrentView('admin');
+              setAdminTab('dashboard');
             } else {
               setCurrentView('landing');
             }
@@ -2152,27 +2153,13 @@ function App() {
                 TAB 1: DASHBOARD (SIMPLE & FOCUSED)
                ========================================================================= */}
             {adminTab === 'dashboard' && (
-              <div className="analytics-container animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+              <div className="analytics-container animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                 
                 {/* Visual Header */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
                   <div>
                     <h2 style={{ fontSize: '1.75rem', fontWeight: '800', color: '#fff', margin: 0 }}>Dashboard Operativo & Comercial</h2>
-                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '0.25rem' }}>Resumen ejecutivo: la actividad de hoy y los asuntos que requieren tu atención inmediata.</p>
-                  </div>
-                  <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-                    <button 
-                      className={`btn-secondary ${isSyncingERP ? 'loading' : ''}`}
-                      onClick={handleERPSync} 
-                      disabled={isSyncingERP}
-                      style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-                    >
-                      <RefreshCw size={16} className={isSyncingERP ? 'animate-spin' : ''} /> 
-                      {isSyncingERP ? 'Sincronizando...' : 'Sincronizar Sistema Externo'}
-                    </button>
-                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                      Última Sincronización: <strong>{lastSyncERP}</strong>
-                    </span>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '0.25rem' }}>Resumen ejecutivo: la actividad de hoy y las acciones concretas pendientes.</p>
                   </div>
                 </div>
 
@@ -2228,30 +2215,28 @@ function App() {
                     </div>
                   </div>
 
-                  {/* Right Column: Asuntos Prioritarios (Requieren Acción) */}
+                  {/* Right Column: Acciones Concretas Pendientes */}
                   <div className="glass-card text-left" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
                       <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#fff', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <AlertTriangle size={18} style={{ color: '#ef4444' }} /> Asuntos Prioritarios (Acciones Inmediatas)
+                        <AlertTriangle size={18} style={{ color: '#f59e0b' }} /> Acciones Concretas Pendientes
                       </h3>
-                      <span className="simulation-tag">VERIFICADO</span>
+                      <span className="badge badge-quote" style={{ fontSize: '0.75rem' }}>Atención requerida</span>
                     </div>
 
-                    {/* Section 1: Presupuestos sin respuesta > 5 días */}
-                    <div style={{ background: 'rgba(245, 158, 11, 0.05)', border: '1px solid rgba(245, 158, 11, 0.2)', padding: '1rem', borderRadius: 'var(--radius-sm)' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                        <strong style={{ color: '#f59e0b', fontSize: '0.85rem' }}>⚠️ Presupuestos Enviados sin Respuesta (&gt;5 días)</strong>
-                        <span className="badge badge-quote">{leads.filter(l => l.status === 'Presupuesto enviado' && l.daysWithoutResponse > 5).length} pendientes</span>
-                      </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                      {/* Presupuestos que requieren seguimiento */}
                       {leads.filter(l => l.status === 'Presupuesto enviado' && l.daysWithoutResponse > 5).map(job => (
-                        <div key={job.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem', background: '#0b141f', padding: '0.5rem 0.75rem', borderRadius: '6px' }}>
+                        <div key={job.id} style={{ background: 'rgba(245, 158, 11, 0.04)', padding: '0.85rem', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(245, 158, 11, 0.3)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem' }}>
                           <div>
-                            <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#fff' }}>{job.name}</div>
-                            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{job.daysWithoutResponse} días sin respuesta • {job.totalPrice}€</div>
+                            <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#fff' }}>{job.name}</div>
+                            <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '0.2rem' }}>
+                              Presupuesto de {job.totalPrice}€ • <span style={{ color: '#f59e0b', fontWeight: 600 }}>{job.daysWithoutResponse} días sin respuesta</span>
+                            </div>
                           </div>
                           <button 
                             className="btn-primary" 
-                            style={{ fontSize: '0.75rem', padding: '0.3rem 0.6rem', background: '#f59e0b', borderColor: '#f59e0b', color: '#000' }}
+                            style={{ fontSize: '0.75rem', padding: '0.35rem 0.7rem', background: '#f59e0b', borderColor: '#f59e0b', color: '#000', whiteSpace: 'nowrap' }}
                             onClick={() => {
                               setSimulatedModal({
                                 title: 'Recordatorio Comercial de Presupuesto (>5 días)',
@@ -2265,70 +2250,50 @@ function App() {
                           </button>
                         </div>
                       ))}
-                    </div>
 
-                    {/* Section 2: Trabajos Terminados pendientes de Gestión Admin */}
-                    <div style={{ background: 'rgba(239, 68, 68, 0.05)', border: '1px solid rgba(239, 68, 68, 0.2)', padding: '1rem', borderRadius: 'var(--radius-sm)' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                        <strong style={{ color: '#f87171', fontSize: '0.85rem' }}>🔴 Trabajos Terminados Pendientes de Facturación</strong>
-                        <span className="badge badge-pendiente-admin">{leads.filter(l => l.status === 'Terminado' || l.status === 'Pendiente de gestión administrativa').length} listos</span>
-                      </div>
+                      {/* Trabajos terminados que requieren volcado admin */}
                       {leads.filter(l => l.status === 'Terminado' || l.status === 'Pendiente de gestión administrativa').map(job => (
-                        <div key={job.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem', background: '#0b141f', padding: '0.5rem 0.75rem', borderRadius: '6px' }}>
+                        <div key={job.id} style={{ background: 'rgba(239, 68, 68, 0.04)', padding: '0.85rem', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(239, 68, 68, 0.3)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem' }}>
                           <div>
-                            <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#fff' }}>{job.name}</div>
-                            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Parte firmado • Importe: {job.totalPrice}€</div>
+                            <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#fff' }}>{job.name}</div>
+                            <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '0.2rem' }}>
+                              Parte de trabajo firmado • <span style={{ color: '#f87171', fontWeight: 600 }}>{job.totalPrice}€ pendiente de facturación</span>
+                            </div>
                           </div>
                           <button 
                             className="btn-primary" 
-                            style={{ fontSize: '0.75rem', padding: '0.3rem 0.6rem', background: '#ef4444', borderColor: '#ef4444' }}
+                            style={{ fontSize: '0.75rem', padding: '0.35rem 0.7rem', background: '#ef4444', borderColor: '#ef4444', whiteSpace: 'nowrap' }}
                             onClick={() => {
                               setAdminTab('admin');
                               setAdminSubTab('pending_admin');
                             }}
                           >
-                            📋 Ir a Administración
+                            📋 Ir a Facturación
+                          </button>
+                        </div>
+                      ))}
+
+                      {/* Leads nuevos sin presupuesto */}
+                      {leads.filter(l => l.status === 'Nuevo').map(job => (
+                        <div key={job.id} style={{ background: 'rgba(6, 182, 212, 0.04)', padding: '0.85rem', borderRadius: 'var(--radius-sm)', border: '1px solid rgba(6, 182, 212, 0.3)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem' }}>
+                          <div>
+                            <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#fff' }}>{job.name}</div>
+                            <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '0.2rem' }}>
+                              Nuevo lead registrado • <span style={{ color: '#06b6d4', fontWeight: 600 }}>Pendiente de valorar</span>
+                            </div>
+                          </div>
+                          <button 
+                            className="btn-primary" 
+                            style={{ fontSize: '0.75rem', padding: '0.35rem 0.7rem', background: '#06b6d4', borderColor: '#06b6d4', color: '#000', whiteSpace: 'nowrap' }}
+                            onClick={() => {
+                              setAdminTab('leads');
+                            }}
+                          >
+                            👤 Ver en Leads
                           </button>
                         </div>
                       ))}
                     </div>
-
-                  </div>
-                </div>
-
-                {/* 10-STAGE PIPELINE TRACKING BAR */}
-                <div className="glass-card" style={{ padding: '1.25rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-                    <h4 style={{ margin: 0, fontSize: '0.95rem', color: '#fff', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <TrendingUp size={16} className="text-cool" /> Flujo Completo de Trazabilidad (10 Estados)
-                    </h4>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Oficina ➔ Operario ➔ Administración ➔ Facturación Externa</span>
-                  </div>
-
-                  <div className="pipeline-container">
-                    {[
-                      { key: 'Nuevo', label: '1. Nuevo Lead' },
-                      { key: 'Presupuesto preparado', label: '2. Pres. Listo' },
-                      { key: 'Presupuesto enviado', label: '3. Pres. Enviado' },
-                      { key: 'Aceptado', label: '4. Aceptado' },
-                      { key: 'Programado', label: '5. Programado' },
-                      { key: 'En camino', label: '6. En Camino' },
-                      { key: 'En curso', label: '7. En Curso' },
-                      { key: 'Terminado', label: '8. Terminado / Parte' },
-                      { key: 'Pendiente de gestión administrativa', label: '9. Pend. Admin', highlight: 'admin' },
-                      { key: 'Pasado a facturación externa', label: '10. Fact. Externa', highlight: 'ext' }
-                    ].map(stage => {
-                      const count = leads.filter(l => l.status === stage.key).length;
-                      return (
-                        <div 
-                          key={stage.key} 
-                          className={`pipeline-step ${count > 0 ? 'active-step' : ''} ${stage.highlight === 'admin' ? 'highlight-admin' : ''} ${stage.highlight === 'ext' ? 'highlight-ext' : ''}`}
-                        >
-                          <div className="pipeline-count">{count}</div>
-                          <div className="pipeline-label" title={stage.key}>{stage.label}</div>
-                        </div>
-                      );
-                    })}
                   </div>
                 </div>
               </div>
@@ -4213,7 +4178,7 @@ function App() {
                 className="btn-portal w-full"
                 onClick={() => {
                   setCurrentView('admin');
-                  setAdminTab('leads');
+                  setAdminTab('dashboard');
                 }}
                 style={{ background: 'rgba(var(--accent-cool-rgb), 0.1)', borderColor: 'rgba(var(--accent-cool-rgb), 0.3)' }}
               >
