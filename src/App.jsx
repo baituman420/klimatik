@@ -35,10 +35,18 @@ import {
   CalendarDays,
   FileSpreadsheet,
   TrendingUp,
-  BarChart3
+  BarChart3,
+  Zap,
+  Eye,
+  Truck,
+  Edit,
+  CheckSquare,
+  Search,
+  Filter,
+  UserPlus
 } from 'lucide-react';
 
-// Initial Mock Data
+// Initial Mock Data (Realistic HVAC Demo Dataset)
 const INITIAL_LEADS = [
   {
     id: 'lead-1',
@@ -50,7 +58,10 @@ const INITIAL_LEADS = [
     address: 'Calle Mayor 15, Madrid',
     description: 'Instalación de 3 unidades cassette DUAL split para comedor principal.',
     status: 'Programado',
-    date: '2026-05-24',
+    date: '2026-05-25',
+    daysWithoutResponse: 0,
+    externalInvoiceRef: '',
+    paymentStatus: 'No facturado',
     totalPrice: 2850,
     items: [
       { description: 'Sistema Cassette Daikin Twin 12kW', quantity: 1, price: 1950 },
@@ -69,6 +80,9 @@ const INITIAL_LEADS = [
     description: 'Fuga de gas refrigerante en split de dormitorio. El aparato no enfría.',
     status: 'Nuevo',
     date: '2026-05-24',
+    daysWithoutResponse: 0,
+    externalInvoiceRef: '',
+    paymentStatus: 'No facturado',
     totalPrice: 120,
     items: [
       { description: 'Carga de Gas Refrigerante R32 ecológico', quantity: 1, price: 120 }
@@ -83,8 +97,11 @@ const INITIAL_LEADS = [
     type: 'Mantenimiento',
     address: 'Calle Serrano 120, Planta 2, Madrid',
     description: 'Revisión anual obligatoria RITE del sistema central de climatización conductos.',
-    status: 'Presupuesto Enviado',
-    date: '2026-05-23',
+    status: 'Presupuesto enviado',
+    date: '2026-05-18',
+    daysWithoutResponse: 7, // Sin respuesta > 5 días -> Requiere seguimiento
+    externalInvoiceRef: '',
+    paymentStatus: 'No facturado',
     totalPrice: 450,
     items: [
       { description: 'Mantenimiento RITE - Climatizadora Central', quantity: 1, price: 350 },
@@ -93,6 +110,46 @@ const INITIAL_LEADS = [
   },
   {
     id: 'lead-4',
+    name: 'Clínica Dental Sol',
+    company: 'Dental Sol S.L.',
+    email: 'administracion@dentalsol.es',
+    phone: '+34 91 444 8899',
+    type: 'Industrial',
+    address: 'Calle Alcalá 84, Madrid',
+    description: 'Sustitución de compresor frigorífico y purga de circuito conductos. Trabajo finalizado en obra por Carlos.',
+    status: 'Pendiente de gestión administrativa',
+    date: '2026-05-24',
+    daysWithoutResponse: 0,
+    externalInvoiceRef: '',
+    paymentStatus: 'No facturado',
+    totalPrice: 1890,
+    items: [
+      { description: 'Compresor scroll 5HP alta eficiencia', quantity: 1, price: 1350 },
+      { description: 'Mano de obra y recuperación de gas', quantity: 1, price: 540 }
+    ]
+  },
+  {
+    id: 'lead-5',
+    name: 'Talleres AutoMadrid',
+    company: 'AutoMadrid Norte',
+    email: 'taller@automadrid.es',
+    phone: '+34 91 777 2211',
+    type: 'Urgencia',
+    address: 'Polígono Industrial Las Mercedes, Nave 4',
+    description: 'Reparación urgente de cortina de aire en recepción de taller.',
+    status: 'Terminado',
+    date: '2026-05-24',
+    daysWithoutResponse: 0,
+    externalInvoiceRef: '',
+    paymentStatus: 'No facturado',
+    totalPrice: 680,
+    items: [
+      { description: 'Sustitución condensador y tarjeta de control cortina', quantity: 1, price: 480 },
+      { description: 'Desplazamiento urgente y mano de obra', quantity: 1, price: 200 }
+    ]
+  },
+  {
+    id: 'lead-6',
     name: 'Javier López',
     company: 'Particular',
     email: 'jlopez99@hotmail.com',
@@ -100,22 +157,203 @@ const INITIAL_LEADS = [
     type: 'Residencial',
     address: 'Calle Alfonso XII, 8, Madrid',
     description: 'Instalación de bomba de calor para salón de 30 metros cuadrados.',
-    status: 'Completado',
+    status: 'Pasado a facturación externa',
     date: '2026-05-20',
+    daysWithoutResponse: 0,
+    externalInvoiceRef: 'FACT-2026-0481 (Programa de facturación)',
+    paymentStatus: 'Cobro verificado',
     totalPrice: 1350,
     items: [
       { description: 'Aire Acondicionado Mitsubishi Electric AP35', quantity: 1, price: 850 },
       { description: 'Kit instalación rápida y soportes amortiguados', quantity: 1, price: 150 },
       { description: 'Instalación básica e interconexión', quantity: 1, price: 350 }
     ]
+  },
+  {
+    id: 'lead-7',
+    name: 'Fernando Ruiz (Chalet La Moraleja)',
+    company: 'Particular',
+    email: 'fruiz_la_moraleja@gmail.com',
+    phone: '+34 630 112 233',
+    type: 'Residencial',
+    address: 'Paseo del Conde 12, Alcobendas',
+    description: 'Estudio de aerotermia para vivienda unifamiliar de 240 m2.',
+    status: 'Presupuesto preparado',
+    date: '2026-05-24',
+    daysWithoutResponse: 0,
+    externalInvoiceRef: '',
+    paymentStatus: 'No facturado',
+    totalPrice: 8400,
+    items: [
+      { description: 'Unidad Aerotermia Daikin Altherma 3 14kW', quantity: 1, price: 6200 },
+      { description: 'Depósito ACS 300L e interconexión', quantity: 1, price: 2200 }
+    ]
+  },
+  {
+    id: 'lead-8',
+    name: 'Colegio San José',
+    company: 'Fundación San José',
+    email: 'gerencia@colegiosanjose.edu.es',
+    phone: '+34 91 888 4433',
+    type: 'Industrial',
+    address: 'Calle San Bernardo 45, Madrid',
+    description: 'Presupuesto para climatización de 4 aulas con multisplit.',
+    status: 'Presupuesto enviado',
+    date: '2026-05-12',
+    daysWithoutResponse: 12, // Sin respuesta > 5 días -> Alerta urgente
+    externalInvoiceRef: '',
+    paymentStatus: 'No facturado',
+    totalPrice: 3600,
+    items: [
+      { description: 'Sistema MultiSplit 4x1 Haier', quantity: 1, price: 2800 },
+      { description: 'Instalación canaleta y cableado alimentador', quantity: 1, price: 800 }
+    ]
+  },
+  {
+    id: 'lead-9',
+    name: 'Marta Fernández',
+    company: 'Particular',
+    email: 'marta.fndz@gmail.com',
+    phone: '+34 677 889 900',
+    type: 'Residencial',
+    address: 'Calle Velázquez 34, 2ºA, Madrid',
+    description: 'Bomba de calor conductos Fujitsu. Presupuesto aprobado por el cliente.',
+    status: 'Aceptado',
+    date: '2026-05-23',
+    daysWithoutResponse: 0,
+    externalInvoiceRef: '',
+    paymentStatus: 'No facturado',
+    totalPrice: 2100,
+    items: [
+      { description: 'Conductos Fujitsu ACY71K-KA', quantity: 1, price: 1600 },
+      { description: 'Adaptación rejillas de difusión y embocado', quantity: 1, price: 500 }
+    ]
+  },
+  {
+    id: 'lead-10',
+    name: 'Panadería El Horno',
+    company: 'El Horno Artesano S.L.',
+    email: 'pedidos@elhornoartesano.es',
+    phone: '+34 91 333 5566',
+    type: 'Urgencia',
+    address: 'Calle Atocha 88, Madrid',
+    description: 'Extracción de humos y climatización de obrador. Técnico interviniendo actualmente.',
+    status: 'En curso',
+    date: '2026-05-25',
+    daysWithoutResponse: 0,
+    externalInvoiceRef: '',
+    paymentStatus: 'No facturado',
+    totalPrice: 980,
+    items: [
+      { description: 'Motor extractor 400 ºC/2h caja insonorizada', quantity: 1, price: 780 },
+      { description: 'Mano de obra urgente', quantity: 1, price: 200 }
+    ]
+  },
+  {
+    id: 'lead-11',
+    name: 'Asesoría Henares',
+    company: 'Henares Consultores',
+    email: 'admin@henaresconsultores.com',
+    phone: '+34 91 666 3322',
+    type: 'Mantenimiento',
+    address: 'Av. Reyes Católicos 14, Alcalá de Henares',
+    description: 'Revisión semestral de splits y limpieza de filtros antibacterianos.',
+    status: 'Pasado a facturación externa',
+    date: '2026-05-19',
+    daysWithoutResponse: 0,
+    externalInvoiceRef: 'FACT-2026-0479 (Programa de facturación)',
+    paymentStatus: 'Pendiente de comprobar en banco',
+    totalPrice: 640,
+    items: [
+      { description: 'Revisión 8 unidades de climatización', quantity: 1, price: 640 }
+    ]
+  },
+  {
+    id: 'lead-12',
+    name: 'Boutique Chic',
+    company: 'Moda Chic S.A.',
+    email: 'contacto@boutiquechic.es',
+    phone: '+34 91 222 1100',
+    type: 'Mantenimiento',
+    address: 'Calle Fuencarral 12, Madrid',
+    description: 'Mantenimiento de climatizador cassette de escaparate.',
+    status: 'Finalizado',
+    date: '2026-05-15',
+    daysWithoutResponse: 0,
+    externalInvoiceRef: 'FACT-2026-0455',
+    paymentStatus: 'Cobrado',
+    totalPrice: 320,
+    items: [
+      { description: 'Higienización y tratamiento bactericida', quantity: 1, price: 320 }
+    ]
+  }
+];
+
+const INITIAL_CLIENTS = [
+  {
+    id: 'cli-1',
+    name: 'Roberto Gómez',
+    clientType: 'Empresa',
+    company: 'Restaurante La Paella S.L.',
+    nifCif: 'B-84729103',
+    email: 'roberto@lapaella.com',
+    phone: '+34 612 345 678',
+    contactPerson: 'Roberto Gómez (Gerente)',
+    mainAddress: 'Calle Mayor 15, Madrid',
+    installationAddresses: [
+      'Calle Mayor 15, Madrid (Comedor Principal)',
+      'Calle Mayor 17, Madrid (Cocina & Obradores)'
+    ],
+    notes: 'Cliente de alta prioridad. Mantenimiento semestral programado antes de apertura.',
+    status: 'activo',
+    originLeadId: 'lead-1',
+    createdAt: '2026-05-20'
+  },
+  {
+    id: 'cli-2',
+    name: 'María García',
+    clientType: 'Particular',
+    company: 'Particular',
+    nifCif: '53142890X',
+    email: 'mgarcia@gmail.com',
+    phone: '+34 689 765 432',
+    contactPerson: 'María García',
+    mainAddress: 'Av. de América 42, 4ºB, Madrid',
+    installationAddresses: [
+      'Av. de América 42, 4ºB, Madrid'
+    ],
+    notes: 'Solicitó recarga R32 urgente. Atención preferente tardes.',
+    status: 'activo',
+    originLeadId: 'lead-2',
+    createdAt: '2026-05-24'
+  },
+  {
+    id: 'cli-3',
+    name: 'TechHub Spaces',
+    clientType: 'Empresa',
+    company: 'TechHub Spaces S.L.',
+    nifCif: 'A-91827364',
+    email: 'mantenimiento@techhub.es',
+    phone: '+34 91 555 1234',
+    contactPerson: 'Elena Rivas (Facility Manager)',
+    mainAddress: 'Calle Serrano 120, Planta 2, Madrid',
+    installationAddresses: [
+      'Calle Serrano 120, Planta 2, Madrid',
+      'Calle Serrano 120, Planta 3, Madrid'
+    ],
+    notes: 'Revisión RITE anual obligatoria para oficinas.',
+    status: 'activo',
+    originLeadId: 'lead-3',
+    createdAt: '2026-05-18'
   }
 ];
 
 const EMPLOYEES = [
-  { id: 1, name: 'Carlos Martín', role: 'Instalador Jefe / Socio', avatar: '👨‍🔧', color: 'var(--accent-warm)' },
-  { id: 2, name: 'Javier Sanz', role: 'Técnico de Climatización', avatar: '🧑‍🔧', color: '#10b981' },
-  { id: 3, name: 'Laura Ortiz', role: 'Técnica Frigorista', avatar: '👩‍🔧', color: '#06b6d4' },
-  { id: 4, name: 'David Ruíz', role: 'Ayudante de Instalación', avatar: '👦', color: '#f59e0b' }
+  { id: 1, name: 'Marta Ortiz', role: 'Administración', specialty: 'Gestión & Facturación', phone: '+34 600 111 222', email: 'marta@klimatik.es', status: 'activo', schedule: '08:30 - 17:30', avatar: '👩‍💼', color: '#06b6d4' },
+  { id: 2, name: 'Carlos Martín', role: 'Técnico', specialty: 'Climatización & Aerotermia', phone: '+34 600 333 444', email: 'carlos@klimatik.es', status: 'activo', schedule: '08:00 - 16:00', avatar: '👨‍🔧', color: 'var(--accent-warm)' },
+  { id: 3, name: 'Javier Sanz', role: 'Técnico', specialty: 'Conductos & VRF', phone: '+34 600 555 666', email: 'javier@klimatik.es', status: 'activo', schedule: '08:00 - 16:00', avatar: '🧑‍🔧', color: '#10b981' },
+  { id: 4, name: 'Laura Ortiz', role: 'Técnica', specialty: 'Frigorista RITE', phone: '+34 600 777 888', email: 'laura@klimatik.es', status: 'activo', schedule: '08:30 - 16:30', avatar: '👩‍🔧', color: '#06b6d4' },
+  { id: 5, name: 'David Ruíz', role: 'Técnico', specialty: 'Ayudante de Instalación', phone: '+34 600 999 000', email: 'david@klimatik.es', status: 'inactivo', schedule: '08:00 - 16:00', avatar: '👦', color: '#f59e0b' }
 ];
 
 const INITIAL_SHIFTS = [
@@ -233,19 +471,84 @@ const WHATSAPP_TEMPLATES = {
   en_camino: "¡Hola! Tu instalador de Klimatik ya va de camino a tu ubicación en {{address}}. Estimamos la llegada en unos 25 minutos. ¡Hasta ahora!"
 };
 
+// Helper for rendering badges across the 10-stage lifecycle
+const getStatusBadge = (status) => {
+  switch (status) {
+    case 'Nuevo':
+      return <span className="badge badge-nuevo"><Info size={12} /> Nuevo</span>;
+    case 'Contactado':
+      return <span className="badge badge-contactado"><Phone size={12} /> Contactado</span>;
+    case 'Presupuesto preparado':
+      return <span className="badge badge-presupuesto-preparado"><FileText size={12} /> Presupuesto preparado</span>;
+    case 'Presupuesto enviado':
+      return <span className="badge badge-presupuesto-enviado"><Send size={12} /> Presupuesto enviado</span>;
+    case 'Aceptado':
+      return <span className="badge badge-aceptado"><CheckCircle size={12} /> Aceptado</span>;
+    case 'Programado':
+      return <span className="badge badge-programado"><Calendar size={12} /> Programado</span>;
+    case 'En camino':
+      return <span className="badge badge-en-camino"><Truck size={12} /> En camino</span>;
+    case 'En curso':
+      return <span className="badge badge-en-curso"><Play size={12} /> En curso</span>;
+    case 'Terminado':
+      return <span className="badge badge-terminado"><Check size={12} /> Terminado</span>;
+    case 'Pendiente de gestión administrativa':
+      return <span className="badge badge-pendiente-admin"><AlertTriangle size={12} /> Pendiente gestión admin</span>;
+    case 'Pasado a facturación externa':
+      return <span className="badge badge-pasado-facturacion"><ExternalLink size={12} /> Pasado a fact. ext.</span>;
+    case 'Finalizado':
+      return <span className="badge badge-finalizado"><FileCheck size={12} /> Finalizado</span>;
+    default:
+      return <span className="badge badge-nuevo">{status}</span>;
+  }
+};
+
 function App() {
   // Navigation
   const [currentView, setCurrentView] = useState('landing');
-  const [adminTab, setAdminTab] = useState('analytics');
+  const [adminTab, setAdminTab] = useState('dashboard'); // 'dashboard', 'leads', 'clients', 'budgets', 'calendar', 'jobs', 'admin', 'team', 'automations'
+  const [adminSubTab, setAdminSubTab] = useState('pending_admin');
+  const [teamSubTab, setTeamSubTab] = useState('team_members');
+  const [leadFilter, setLeadFilter] = useState('all');
+  const [clientFilter, setClientFilter] = useState('all');
+  const [jobStatusFilter, setJobStatusFilter] = useState('all');
+  const [budgetFilter, setBudgetFilter] = useState('all');
   const [employeeTab, setEmployeeTab] = useState('clock');
   
-  // Selected Profile
+  // Modals & Drawers
+  const [selectedJobForModal, setSelectedJobForModal] = useState(null);
+  const [selectedClientForModal, setSelectedClientForModal] = useState(null);
+  const [selectedParteModal, setSelectedParteModal] = useState(null);
+  const [simulatedModal, setSimulatedModal] = useState(null); // { title, recipient, message, type }
+  
+  // CRUD Modal States
+  const [showLeadModal, setShowLeadModal] = useState(false);
+  const [selectedLeadForEdit, setSelectedLeadForEdit] = useState(null);
+  
+  const [showClientModal, setShowClientModal] = useState(false);
+  const [selectedClientForEdit, setSelectedClientForEdit] = useState(null);
+  const [selectedClientFor360View, setSelectedClientFor360View] = useState(null);
+  
+  const [showUserModal, setShowUserModal] = useState(false);
+  const [selectedUserForEdit, setSelectedUserForEdit] = useState(null);
+
+  // Selected Profile for Operario Portal
   const [selectedEmployee, setSelectedEmployee] = useState(EMPLOYEES[0]);
 
   // Main Data States (with LocalStorage fallback)
   const [leads, setLeads] = useState(() => {
     const saved = localStorage.getItem('klimatik_leads');
     return saved ? JSON.parse(saved) : INITIAL_LEADS;
+  });
+
+  const [clients, setClients] = useState(() => {
+    const saved = localStorage.getItem('klimatik_clients');
+    return saved ? JSON.parse(saved) : INITIAL_CLIENTS;
+  });
+
+  const [employeesList, setEmployeesList] = useState(() => {
+    const saved = localStorage.getItem('klimatik_employees');
+    return saved ? JSON.parse(saved) : EMPLOYEES;
   });
   
   const [shifts, setShifts] = useState(() => {
@@ -282,6 +585,12 @@ function App() {
   useEffect(() => {
     localStorage.setItem('klimatik_leads', JSON.stringify(leads));
   }, [leads]);
+  useEffect(() => {
+    localStorage.setItem('klimatik_clients', JSON.stringify(clients));
+  }, [clients]);
+  useEffect(() => {
+    localStorage.setItem('klimatik_employees', JSON.stringify(employeesList));
+  }, [employeesList]);
   useEffect(() => {
     localStorage.setItem('klimatik_shifts', JSON.stringify(shifts));
   }, [shifts]);
@@ -339,6 +648,117 @@ function App() {
     localStorage.setItem('klimatik_erp_webhook', erpWebhookUrl);
     localStorage.setItem('klimatik_erp_apikey', erpApiKey);
     showToast('Configuración del ERP guardada correctamente.', 'success');
+  };
+
+  // Lead to Client Conversion Handler (preserves origin trace)
+  const handleConvertLeadToClient = (lead) => {
+    const existingClient = clients.find(c => c.originLeadId === lead.id || (c.email === lead.email && lead.email !== ''));
+    if (existingClient) {
+      showToast(`El lead '${lead.name}' ya está registrado como cliente.`, 'info');
+      return;
+    }
+    const newClient = {
+      id: `cli-${Date.now()}`,
+      name: lead.name,
+      clientType: lead.company && !lead.company.includes('Particular') ? 'Empresa' : 'Particular',
+      company: lead.company || 'Particular',
+      nifCif: lead.nifCif || `B-${Math.floor(10000000 + Math.random() * 90000000)}`,
+      email: lead.email,
+      phone: lead.phone,
+      contactPerson: lead.name,
+      mainAddress: lead.address,
+      installationAddresses: [lead.address],
+      notes: `Convertido desde Lead #${lead.id} (${lead.origin || 'formulario web'}) el ${new Date().toISOString().split('T')[0]}. Necesidad inicial: ${lead.description}`,
+      status: 'activo',
+      originLeadId: lead.id,
+      createdAt: new Date().toISOString().split('T')[0]
+    };
+    setClients([newClient, ...clients]);
+    setLeads(prev => prev.map(l => l.id === lead.id ? { ...l, status: 'Contactado', convertedToClientId: newClient.id } : l));
+    showToast(`¡Lead '${lead.name}' convertido a Cliente con éxito! Trazabilidad vinculada.`, 'success');
+  };
+
+  // Lead Discard Handler (uses status without physical deletion)
+  const handleDiscardLead = (leadId) => {
+    setLeads(prev => prev.map(l => l.id === leadId ? { ...l, status: 'Descartado' } : l));
+    showToast('Lead marcado como Descartado. Se conserva su historial en la plataforma.', 'info');
+  };
+
+  // Save / Edit Client Handler
+  const handleSaveClient = (clientData) => {
+    if (clientData.id) {
+      setClients(prev => prev.map(c => c.id === clientData.id ? { ...c, ...clientData } : c));
+      showToast('Ficha de cliente actualizada con éxito.', 'success');
+    } else {
+      const newCli = {
+        ...clientData,
+        id: `cli-${Date.now()}`,
+        status: 'activo',
+        createdAt: new Date().toISOString().split('T')[0]
+      };
+      setClients([newCli, ...clients]);
+      showToast('Nuevo cliente registrado en la plataforma.', 'success');
+    }
+    setShowClientModal(false);
+    setSelectedClientForEdit(null);
+  };
+
+  // Internal User Handlers
+  const handleSaveUser = (userData) => {
+    if (userData.id) {
+      setEmployeesList(prev => prev.map(u => u.id === userData.id ? { ...u, ...userData } : u));
+      showToast(`Usuario interno '${userData.name}' actualizado.`, 'success');
+    } else {
+      const newEmp = {
+        ...userData,
+        id: Date.now(),
+        status: 'activo',
+        avatar: userData.role === 'Técnico' ? '👨‍🔧' : '👩‍💼',
+        color: '#38bdf8'
+      };
+      setEmployeesList([...employeesList, newEmp]);
+      showToast(`Nuevo usuario interno '${userData.name}' registrado como ${userData.role}.`, 'success');
+    }
+    setShowUserModal(false);
+    setSelectedUserForEdit(null);
+  };
+
+  const handleToggleUserStatus = (userId) => {
+    setEmployeesList(prev => prev.map(u => {
+      if (u.id === userId) {
+        const nextStatus = u.status === 'activo' ? 'inactivo' : 'activo';
+        showToast(`Usuario '${u.name}' cambiado a estado '${nextStatus}'. Su histórico se conserva.`, 'info');
+        return { ...u, status: nextStatus };
+      }
+      return u;
+    }));
+  };
+
+  // Handle Transition Status across the 10-stage lifecycle
+  const handleTransitionStatus = (leadId, newStatus, customRef = '') => {
+    setLeads(prevLeads => prevLeads.map(l => {
+      if (l.id === leadId) {
+        const updated = { ...l, status: newStatus };
+        if (newStatus === 'Pasado a facturación externa') {
+          updated.externalInvoiceRef = customRef || `FACT-2026-${Math.floor(1000 + Math.random() * 9000)} (Holded/Contasimple)`;
+          updated.paymentStatus = 'Pendiente de comprobar en banco';
+        } else if (newStatus === 'Finalizado') {
+          updated.paymentStatus = 'Cobrado';
+        }
+        return updated;
+      }
+      return l;
+    }));
+
+    if (newStatus === 'Pasado a facturación externa') {
+      showToast(`Trabajo marcado como 'Pasado a Facturación Externa'. Trazabilidad actualizada.`, 'success');
+    } else if (newStatus === 'Aceptado') {
+      showToast(`Presupuesto marcado como ACEPTADO. Listo para programar en la Rota.`, 'success');
+    } else if (newStatus === 'Pendiente de gestión administrativa') {
+      showToast(`Trabajo trasladado a la Bandeja Administrativa.`, 'info');
+    } else {
+      showToast(`Estado de trabajo actualizado a: ${newStatus}`, 'info');
+    }
   };
 
   // CSV Export Utility
@@ -874,7 +1294,7 @@ function App() {
     setShifts([...shifts, newShift]);
     setShowShiftModal(false);
     
-    const emp = employees.find(emp => emp.id === parseInt(adminShiftEmpId));
+    const emp = EMPLOYEES.find(emp => emp.id === parseInt(adminShiftEmpId));
     const empName = emp ? emp.name : 'Operario';
     showToast(`Turno asignado a ${empName} correctamente.`, 'success');
 
@@ -1519,10 +1939,10 @@ function App() {
 
 
       {/* =========================================================================
-          VIEW 2: ADMIN PORTAL (MARTA'S DASHBOARD)
+          VIEW 2: ADMIN / COMMERCIAL DASHBOARD (PORTAL MARTA)
           ========================================================================= */}
       {currentView === 'admin' && (
-        <div className="dashboard-wrapper admin">
+        <div className="dashboard-wrapper">
           {/* Sidebar */}
           <aside className="sidebar">
             <div className="sidebar-profile">
@@ -1534,48 +1954,116 @@ function App() {
             </div>
 
             <div className="sidebar-menu">
-              <div className="sidebar-menu-title">Panel de Control</div>
+              <div className="sidebar-menu-title">Navegación Klimatik</div>
               
               <div 
-                className={`sidebar-item ${adminTab === 'analytics' ? 'active' : ''}`}
-                onClick={() => setAdminTab('analytics')}
+                className={`sidebar-item ${adminTab === 'dashboard' ? 'active' : ''}`}
+                onClick={() => setAdminTab('dashboard')}
               >
-                <BarChart3 size={18} /> Analíticas de Negocio
+                <BarChart3 size={18} /> Dashboard
               </div>
 
               <div 
                 className={`sidebar-item ${adminTab === 'leads' ? 'active' : ''}`}
                 onClick={() => setAdminTab('leads')}
+                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
               >
-                <ClipboardList size={18} /> Gestión de Leads ({leads.length})
+                <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <Users size={18} /> Leads
+                </span>
+                {leads.filter(l => l.status === 'Nuevo' || l.status === 'Contactado').length > 0 && (
+                  <span style={{ background: '#06b6d4', color: '#fff', fontSize: '0.72rem', padding: '2px 8px', borderRadius: '100px', fontWeight: 800 }}>
+                    {leads.filter(l => l.status === 'Nuevo' || l.status === 'Contactado').length}
+                  </span>
+                )}
               </div>
 
               <div 
-                className={`sidebar-item ${adminTab === 'whatsapp' ? 'active' : ''}`}
-                onClick={() => setAdminTab('whatsapp')}
+                className={`sidebar-item ${adminTab === 'clients' ? 'active' : ''}`}
+                onClick={() => setAdminTab('clients')}
               >
-                <MessageSquare size={18} /> Simulador WhatsApp
+                <UserCheck size={18} /> Clientes
               </div>
 
               <div 
-                className={`sidebar-item ${adminTab === 'documents' ? 'active' : ''}`}
-                onClick={() => setAdminTab('documents')}
+                className={`sidebar-item ${adminTab === 'budgets' ? 'active' : ''}`}
+                onClick={() => setAdminTab('budgets')}
+                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
               >
-                <FileText size={18} /> Facturas y Presupuestos
+                <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <FileText size={18} /> Presupuestos
+                </span>
+                {leads.filter(l => l.status === 'Presupuesto enviado' && l.daysWithoutResponse > 5).length > 0 && (
+                  <span style={{ background: '#f59e0b', color: '#000', fontSize: '0.72rem', padding: '2px 8px', borderRadius: '100px', fontWeight: 800 }}>
+                    ⚠️ {leads.filter(l => l.status === 'Presupuesto enviado' && l.daysWithoutResponse > 5).length}
+                  </span>
+                )}
               </div>
 
               <div 
-                className={`sidebar-item ${adminTab === 'rota' ? 'active' : ''}`}
-                onClick={() => setAdminTab('rota')}
+                className={`sidebar-item ${adminTab === 'calendar' ? 'active' : ''}`}
+                onClick={() => setAdminTab('calendar')}
               >
-                <Calendar size={18} /> Rota de Empleados
+                <Calendar size={18} /> Calendario & Citas
               </div>
 
               <div 
-                className={`sidebar-item ${adminTab === 'clockins' ? 'active' : ''}`}
-                onClick={() => setAdminTab('clockins')}
+                className={`sidebar-item ${adminTab === 'jobs' ? 'active' : ''}`}
+                onClick={() => setAdminTab('jobs')}
+                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
               >
-                <MapPin size={18} /> Fichajes y GPS
+                <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <Briefcase size={18} /> Trabajos
+                </span>
+                <span style={{ background: 'rgba(255,255,255,0.1)', color: '#fff', fontSize: '0.72rem', padding: '2px 8px', borderRadius: '100px', fontWeight: 700 }}>
+                  {leads.length}
+                </span>
+              </div>
+
+              <div 
+                className={`sidebar-item ${adminTab === 'admin' ? 'active' : ''}`}
+                onClick={() => setAdminTab('admin')}
+                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+              >
+                <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <Shield size={18} /> Administración
+                </span>
+                {leads.filter(l => l.status === 'Terminado' || l.status === 'Pendiente de gestión administrativa').length > 0 && (
+                  <span style={{ background: '#ef4444', color: '#fff', fontSize: '0.72rem', padding: '2px 8px', borderRadius: '100px', fontWeight: 800 }}>
+                    {leads.filter(l => l.status === 'Terminado' || l.status === 'Pendiente de gestión administrativa').length}
+                  </span>
+                )}
+              </div>
+
+              <div 
+                className={`sidebar-item ${adminTab === 'team' ? 'active' : ''}`}
+                onClick={() => setAdminTab('team')}
+                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+              >
+                <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <Users size={18} /> Equipo / Usuarios
+                </span>
+                <span style={{ background: 'rgba(255,255,255,0.1)', color: '#fff', fontSize: '0.72rem', padding: '2px 8px', borderRadius: '100px', fontWeight: 700 }}>
+                  {employeesList.filter(e => e.status === 'activo').length}
+                </span>
+              </div>
+
+              <div 
+                className={`sidebar-item ${adminTab === 'automations' ? 'active' : ''}`}
+                onClick={() => setAdminTab('automations')}
+              >
+                <Zap size={18} /> Automatizaciones
+              </div>
+
+              <div 
+                className="sidebar-item"
+                onClick={() => {
+                  setCurrentView('employee');
+                  setEmployeeTab('clock');
+                }}
+                style={{ marginTop: '0.5rem', background: 'rgba(249, 115, 22, 0.1)', border: '1px solid rgba(249, 115, 22, 0.25)', color: 'var(--accent-warm)' }}
+              >
+                <User size={18} /> Portal Operario
               </div>
             </div>
 
@@ -1597,62 +2085,80 @@ function App() {
           {/* Main Dashboard Area */}
           <main className="dashboard-content text-left">
             
-            {/* KPI STATS */}
+            {/* KPI STATS CARDS (Max 4 indicators for ultra-simple dashboard) */}
             <div className="stats-grid">
-              <div className="glass-card stat-card">
+              <div className="glass-card stat-card" onClick={() => setAdminTab('calendar')} style={{ borderLeft: '4px solid #38bdf8', cursor: 'pointer' }}>
                 <div className="stat-info">
-                  <span className="stat-label">Nuevos Leads</span>
-                  <span className="stat-value">{leads.filter(l => l.status === 'Nuevo').length}</span>
-                </div>
-                <div className="stat-icon info">
-                  <ClipboardList size={22} />
-                </div>
-              </div>
-
-              <div className="glass-card stat-card">
-                <div className="stat-info">
-                  <span className="stat-label">Servicios Activos</span>
-                  <span className="stat-value">{shifts.length} turnos</span>
+                  <span className="stat-label">Agenda de Hoy</span>
+                  <span className="stat-value" style={{ color: '#38bdf8' }}>
+                    {leads.filter(l => l.status === 'Programado' || l.status === 'En curso' || l.status === 'En camino').length} citas/trabajos
+                  </span>
+                  <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                    Intervenciones para hoy 25 de Mayo
+                  </span>
                 </div>
                 <div className="stat-icon cool">
                   <Calendar size={22} />
                 </div>
               </div>
 
-              <div className="glass-card stat-card">
+              <div className="glass-card stat-card" onClick={() => setAdminTab('leads')} style={{ borderLeft: '4px solid #06b6d4', cursor: 'pointer' }}>
                 <div className="stat-info">
-                  <span className="stat-label">Facturado total</span>
-                  <span className="stat-value">
-                    {leads.reduce((acc, l) => acc + (l.status === 'Completado' ? l.totalPrice : 0), 0)}€
+                  <span className="stat-label">Nuevos Leads</span>
+                  <span className="stat-value" style={{ color: '#06b6d4' }}>
+                    {leads.filter(l => l.status === 'Nuevo' || l.status === 'Contactado').length} pendientes
+                  </span>
+                  <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                    Contactos sin presupuesto preparado
                   </span>
                 </div>
-                <div className="stat-icon success">
-                  <DollarSign size={22} />
+                <div className="stat-icon info">
+                  <Users size={22} />
                 </div>
               </div>
 
-              <div className="glass-card stat-card">
+              <div className="glass-card stat-card" onClick={() => setAdminTab('budgets')} style={{ borderLeft: '4px solid #f59e0b', cursor: 'pointer' }}>
                 <div className="stat-info">
-                  <span className="stat-label">Fichajes Activos</span>
-                  <span className="stat-value">
-                    {clockIns.filter(c => c.active).length} operarios
+                  <span className="stat-label">Presupuestos a Seguimiento</span>
+                  <span className="stat-value" style={{ color: '#f59e0b' }}>
+                    {leads.filter(l => l.status === 'Presupuesto enviado' && l.daysWithoutResponse > 5).length} sin respuesta
+                  </span>
+                  <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                    Más de 5 días sin contestación
                   </span>
                 </div>
-                <div className="stat-icon warm">
-                  <UserCheck size={22} />
+                <div className="stat-icon warning">
+                  <FileText size={22} />
+                </div>
+              </div>
+
+              <div className="glass-card stat-card" onClick={() => setAdminTab('admin')} style={{ borderLeft: '4px solid #ef4444', cursor: 'pointer' }}>
+                <div className="stat-info">
+                  <span className="stat-label">Atención Administrativa</span>
+                  <span className="stat-value" style={{ color: '#f87171' }}>
+                    {leads.filter(l => l.status === 'Terminado' || l.status === 'Pendiente de gestión administrativa').length} en bandeja
+                  </span>
+                  <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                    Partes terminados por volcar a facturación
+                  </span>
+                </div>
+                <div className="stat-icon danger">
+                  <AlertTriangle size={22} />
                 </div>
               </div>
             </div>
 
-            {/* TAB CONTENT: ANALYTICS DASHBOARD */}
-            {adminTab === 'analytics' && (
+            {/* =========================================================================
+                TAB 1: DASHBOARD (SIMPLE & FOCUSED)
+               ========================================================================= */}
+            {adminTab === 'dashboard' && (
               <div className="analytics-container animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
                 
                 {/* Visual Header */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
                   <div>
-                    <h2 style={{ fontSize: '1.75rem', fontWeight: '800', color: '#fff', margin: 0 }}>Analíticas de Negocio</h2>
-                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '0.25rem' }}>Información de rendimiento comercial y control horario del personal.</p>
+                    <h2 style={{ fontSize: '1.75rem', fontWeight: '800', color: '#fff', margin: 0 }}>Dashboard Operativo & Comercial</h2>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '0.25rem' }}>Resumen ejecutivo: la actividad de hoy y los asuntos que requieren tu atención inmediata.</p>
                   </div>
                   <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
                     <button 
@@ -1662,7 +2168,7 @@ function App() {
                       style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
                     >
                       <RefreshCw size={16} className={isSyncingERP ? 'animate-spin' : ''} /> 
-                      {isSyncingERP ? 'Sincronizando...' : 'Sincronizar ERP'}
+                      {isSyncingERP ? 'Sincronizando...' : 'Sincronizar Sistema Externo'}
                     </button>
                     <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                       Última Sincronización: <strong>{lastSyncERP}</strong>
@@ -1670,198 +2176,253 @@ function App() {
                   </div>
                 </div>
 
-                {/* Main Visual Graphs Grid */}
-                <div className="analytics-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '1.5rem' }}>
+                {/* DASHBOARD 2-COLUMN MAIN LAYOUT */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '1.5rem' }}>
                   
-                  {/* Monthly Sales (Bar Chart SVG) */}
-                  <div className="glass-card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <h4 style={{ margin: 0, fontWeight: '700', fontSize: '1rem', color: '#fff', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <TrendingUp size={18} className="text-cool" /> Facturación Mensual (€)
-                      </h4>
-                      <span className="badge badge-success" style={{ fontSize: '0.75rem' }}>Ventas Cerradas</span>
+                  {/* Left Column: Agenda de Hoy (25 Mayo 2026) */}
+                  <div className="glass-card text-left" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
+                      <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#fff', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <Calendar size={18} className="text-cool" /> Agenda de Hoy (25 de Mayo de 2026)
+                      </h3>
+                      <span className="badge badge-scheduled">
+                        {leads.filter(l => l.status === 'Programado' || l.status === 'En curso' || l.status === 'En camino').length} citas
+                      </span>
                     </div>
-                    {renderMonthlyBillingChart()}
-                  </div>
 
-                  {/* Climatization Type (Donut Chart SVG) */}
-                  <div className="glass-card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                    <h4 style={{ margin: 0, fontWeight: '700', fontSize: '1rem', color: '#fff', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <Wind size={18} className="text-warm" /> Especialidades y Tipos de Obra
-                    </h4>
-                    <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center', flexWrap: 'wrap', marginTop: '0.5rem' }}>
-                      {renderClimatizationTypeChart()}
-                    </div>
-                  </div>
-
-                </div>
-
-                {/* Bottom Row Grid */}
-                <div className="analytics-grid-two" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '1.5rem' }}>
-                  
-                  {/* Clock-In Hours Tracking list */}
-                  <div className="glass-card" style={{ padding: '1.5rem' }}>
-                    <h4 style={{ margin: '0 0 1.25rem 0', fontWeight: '700', fontSize: '1rem', color: '#fff', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <Clock size={18} className="text-cool" /> Progreso de Horas Mensuales (Operarios)
-                    </h4>
-                    <div className="employee-hours-list">
-                      {renderEmployeeHoursList()}
-                    </div>
-                  </div>
-
-                  {/* Lead Conversion Funnel Donut */}
-                  <div className="glass-card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem', justifyContent: 'space-between' }}>
-                    <h4 style={{ margin: 0, fontWeight: '700', fontSize: '1rem', color: '#fff', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <CheckCircle size={18} className="text-success" /> Tasa de Conversión Comercial
-                    </h4>
-                    {renderDonutConversionRate()}
-                    <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', margin: 0 }}>
-                      Mide el porcentaje de solicitudes de presupuestos de clientes residenciales o comerciales que se transformaron exitosamente en obras completadas y facturadas.
-                    </p>
-                  </div>
-
-                </div>
-
-                {/* High Fidelity Export Section */}
-                <div className="glass-card" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                  <div>
-                    <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#fff' }}>Exportación e Integración Externa</h3>
-                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginTop: '0.25rem' }}>
-                      Descarga los registros completos de la empresa en formato CSV estructurado para cargarlos en programas de contabilidad o gestión externa.
-                    </p>
-                  </div>
-                  
-                  <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-                    <button 
-                      className="btn-primary" 
-                      onClick={() => exportToCSV(
-                        'klimatik_leads',
-                        leads,
-                        ['ID Lead', 'Cliente/Empresa', 'Empresa', 'Email', 'Teléfono', 'Tipo Servicio', 'Dirección', 'Descripción', 'Estado', 'Importe (€)', 'Fecha Solicitud'],
-                        ['id', 'name', 'company', 'email', 'phone', 'type', 'address', 'desc', 'status', 'totalPrice', 'date']
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+                      {leads.filter(l => l.status === 'Programado' || l.status === 'En curso' || l.status === 'En camino').length === 0 ? (
+                        <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.88rem' }}>
+                          No hay citas programadas para hoy. Puedes asignar nuevas en el Calendario.
+                        </div>
+                      ) : (
+                        leads.filter(l => l.status === 'Programado' || l.status === 'En curso' || l.status === 'En camino').map(job => (
+                          <div key={job.id} style={{ background: 'rgba(255, 255, 255, 0.03)', padding: '0.9rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <strong style={{ color: '#fff', fontSize: '0.9rem' }}>{job.name}</strong>
+                                {getStatusBadge(job.status)}
+                              </div>
+                              <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>📍 {job.address}</span>
+                              <span style={{ fontSize: '0.78rem', color: 'var(--accent-warm)', fontWeight: 600 }}>👨‍🔧 Técnico: Carlos Martín</span>
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', alignItems: 'flex-end' }}>
+                              <button 
+                                className="btn-secondary" 
+                                style={{ fontSize: '0.75rem', padding: '0.3rem 0.6rem' }}
+                                onClick={() => {
+                                  setSimulatedModal({
+                                    title: 'Aviso WhatsApp a Cliente (Simulado)',
+                                    recipient: `${job.name} (${job.phone})`,
+                                    message: `Hola ${job.name.split(' (')[0]}, te recordamos tu cita de climatización con Klimatik programada para hoy. Nuestro técnico Carlos se desplazará a tu dirección en ${job.address}. Si necesitas hacer cualquier ajuste de hora, responde a este mensaje. ¡Gracias!`,
+                                    type: 'whatsapp'
+                                  });
+                                }}
+                              >
+                                📱 Simular WhatsApp
+                              </button>
+                            </div>
+                          </div>
+                        ))
                       )}
-                      style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexGrow: 1, justifyContent: 'center' }}
-                    >
-                      <Download size={16} /> Exportar Leads a CSV
-                    </button>
-                    <button 
-                      className="btn-primary" 
-                      onClick={() => exportToCSV(
-                        'klimatik_rota',
-                        shifts,
-                        ['ID Turno', 'Operario', 'Fecha', 'Hora Inicio', 'Hora Fin', 'Cliente', 'Dirección', 'Instrucciones', 'Estado'],
-                        ['id', 'employee', 'date', 'startTime', 'endTime', 'client', 'address', 'desc', 'status']
-                      )}
-                      style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexGrow: 1, justifyContent: 'center' }}
-                    >
-                      <Calendar size={16} /> Exportar Turnos a CSV
-                    </button>
-                    <button 
-                      className="btn-primary" 
-                      onClick={() => exportToCSV(
-                        'klimatik_fichajes',
-                        clockIns,
-                        ['ID Fichaje', 'Empleado', 'Fecha Fichaje', 'Hora Entrada', 'Hora Salida', 'Ubicación Entrada', 'Ubicación Salida', 'Fichaje Activo'],
-                        ['id', 'employeeName', 'date', 'timeIn', 'timeOut', 'locIn', 'locOut', 'active']
-                      )}
-                      style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexGrow: 1, justifyContent: 'center' }}
-                    >
-                      <Clock size={16} /> Exportar Fichajes a CSV
-                    </button>
+                    </div>
+                  </div>
+
+                  {/* Right Column: Asuntos Prioritarios (Requieren Acción) */}
+                  <div className="glass-card text-left" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
+                      <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#fff', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <AlertTriangle size={18} style={{ color: '#ef4444' }} /> Asuntos Prioritarios (Acciones Inmediatas)
+                      </h3>
+                      <span className="simulation-tag">VERIFICADO</span>
+                    </div>
+
+                    {/* Section 1: Presupuestos sin respuesta > 5 días */}
+                    <div style={{ background: 'rgba(245, 158, 11, 0.05)', border: '1px solid rgba(245, 158, 11, 0.2)', padding: '1rem', borderRadius: 'var(--radius-sm)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                        <strong style={{ color: '#f59e0b', fontSize: '0.85rem' }}>⚠️ Presupuestos Enviados sin Respuesta (&gt;5 días)</strong>
+                        <span className="badge badge-quote">{leads.filter(l => l.status === 'Presupuesto enviado' && l.daysWithoutResponse > 5).length} pendientes</span>
+                      </div>
+                      {leads.filter(l => l.status === 'Presupuesto enviado' && l.daysWithoutResponse > 5).map(job => (
+                        <div key={job.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem', background: '#0b141f', padding: '0.5rem 0.75rem', borderRadius: '6px' }}>
+                          <div>
+                            <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#fff' }}>{job.name}</div>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{job.daysWithoutResponse} días sin respuesta • {job.totalPrice}€</div>
+                          </div>
+                          <button 
+                            className="btn-primary" 
+                            style={{ fontSize: '0.75rem', padding: '0.3rem 0.6rem', background: '#f59e0b', borderColor: '#f59e0b', color: '#000' }}
+                            onClick={() => {
+                              setSimulatedModal({
+                                title: 'Recordatorio Comercial de Presupuesto (>5 días)',
+                                recipient: `${job.name} (${job.phone})`,
+                                message: `Hola ${job.name.split(' (')[0]}, te escribimos desde Klimatik para saber si pudiste revisar la propuesta técnica enviada hace ${job.daysWithoutResponse} días por valor de ${job.totalPrice}€. ¿Deseas resolver alguna duda o concertar la fecha de instalación? Quedamos a tu disposición.`,
+                                type: 'whatsapp'
+                              });
+                            }}
+                          >
+                            📱 Recordatorio WhatsApp
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Section 2: Trabajos Terminados pendientes de Gestión Admin */}
+                    <div style={{ background: 'rgba(239, 68, 68, 0.05)', border: '1px solid rgba(239, 68, 68, 0.2)', padding: '1rem', borderRadius: 'var(--radius-sm)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                        <strong style={{ color: '#f87171', fontSize: '0.85rem' }}>🔴 Trabajos Terminados Pendientes de Facturación</strong>
+                        <span className="badge badge-pendiente-admin">{leads.filter(l => l.status === 'Terminado' || l.status === 'Pendiente de gestión administrativa').length} listos</span>
+                      </div>
+                      {leads.filter(l => l.status === 'Terminado' || l.status === 'Pendiente de gestión administrativa').map(job => (
+                        <div key={job.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem', background: '#0b141f', padding: '0.5rem 0.75rem', borderRadius: '6px' }}>
+                          <div>
+                            <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#fff' }}>{job.name}</div>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Parte firmado • Importe: {job.totalPrice}€</div>
+                          </div>
+                          <button 
+                            className="btn-primary" 
+                            style={{ fontSize: '0.75rem', padding: '0.3rem 0.6rem', background: '#ef4444', borderColor: '#ef4444' }}
+                            onClick={() => {
+                              setAdminTab('admin');
+                              setAdminSubTab('pending_admin');
+                            }}
+                          >
+                            📋 Ir a Administración
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+
                   </div>
                 </div>
 
-                {/* External Sync configuration panel */}
-                <div className="glass-card" style={{ padding: '1.5rem' }}>
-                  <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.2rem', color: '#fff', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <Shield size={18} className="text-warm" /> Configuración del Software de Gestión (ERP)
-                  </h3>
-                  <form onSubmit={handleSaveERPConfig} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.25rem', alignItems: 'end' }}>
-                    <div className="form-group" style={{ margin: 0 }}>
-                      <label htmlFor="erpWebhookUrl" style={{ fontSize: '0.85rem' }}>URL del Webhook de Enlace ERP</label>
-                      <input 
-                        type="url" 
-                        id="erpWebhookUrl" 
-                        className="form-control" 
-                        value={erpWebhookUrl} 
-                        onChange={(e) => setErpWebhookUrl(e.target.value)} 
-                        required 
-                        placeholder="https://api.tuerp.com/hooks"
-                      />
-                    </div>
-                    <div className="form-group" style={{ margin: 0 }}>
-                      <label htmlFor="erpApiKey" style={{ fontSize: '0.85rem' }}>Clave de Acceso Secreta (API Token)</label>
-                      <input 
-                        type="password" 
-                        id="erpApiKey" 
-                        className="form-control" 
-                        value={erpApiKey} 
-                        onChange={(e) => setErpApiKey(e.target.value)} 
-                        required 
-                      />
-                    </div>
-                    <button type="submit" className="btn-primary" style={{ height: '42px' }}>
-                      Guardar Credenciales de Enlace
-                    </button>
-                  </form>
-                </div>
+                {/* 10-STAGE PIPELINE TRACKING BAR */}
+                <div className="glass-card" style={{ padding: '1.25rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                    <h4 style={{ margin: 0, fontSize: '0.95rem', color: '#fff', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <TrendingUp size={16} className="text-cool" /> Flujo Completo de Trazabilidad (10 Estados)
+                    </h4>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Oficina ➔ Operario ➔ Administración ➔ Facturación Externa</span>
+                  </div>
 
+                  <div className="pipeline-container">
+                    {[
+                      { key: 'Nuevo', label: '1. Nuevo Lead' },
+                      { key: 'Presupuesto preparado', label: '2. Pres. Listo' },
+                      { key: 'Presupuesto enviado', label: '3. Pres. Enviado' },
+                      { key: 'Aceptado', label: '4. Aceptado' },
+                      { key: 'Programado', label: '5. Programado' },
+                      { key: 'En camino', label: '6. En Camino' },
+                      { key: 'En curso', label: '7. En Curso' },
+                      { key: 'Terminado', label: '8. Terminado / Parte' },
+                      { key: 'Pendiente de gestión administrativa', label: '9. Pend. Admin', highlight: 'admin' },
+                      { key: 'Pasado a facturación externa', label: '10. Fact. Externa', highlight: 'ext' }
+                    ].map(stage => {
+                      const count = leads.filter(l => l.status === stage.key).length;
+                      return (
+                        <div 
+                          key={stage.key} 
+                          className={`pipeline-step ${count > 0 ? 'active-step' : ''} ${stage.highlight === 'admin' ? 'highlight-admin' : ''} ${stage.highlight === 'ext' ? 'highlight-ext' : ''}`}
+                        >
+                          <div className="pipeline-count">{count}</div>
+                          <div className="pipeline-label" title={stage.key}>{stage.label}</div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
             )}
 
-            {/* TAB CONTENT: LEADS MANAGEMENT */}
+            {/* =========================================================================
+                TAB 2: LEADS
+               ========================================================================= */}
             {adminTab === 'leads' && (
-              <div className="leads-container">
-                <div className="filter-bar">
-                  <h3>Base de Datos y Solicitudes de Climatización</h3>
-                  <div className="filter-actions">
-                    <button className="btn-primary" onClick={() => {
-                      // Seed a quick random lead
-                      const names = ['Federico Sancho', 'Gasolinera Repsol', 'Clinica Dental Sol', 'Clara Benítez'];
-                      const randomName = names[Math.floor(Math.random() * names.length)];
-                      const addresses = ['Av. Pío XII 4, Madrid', 'Calle de Serrano 81, Madrid', 'Calle Alcalá 456, Madrid'];
-                      const randomAddr = addresses[Math.floor(Math.random() * addresses.length)];
-                      const newId = `lead-${Date.now()}`;
-                      setLeads([{
-                        id: newId,
-                        name: randomName,
-                        company: randomName.includes('Gasolinera') || randomName.includes('Clinica') ? randomName : 'Particular',
-                        email: 'info@cliente.com',
-                        phone: '+34 600 ' + Math.floor(100000 + Math.random() * 900000),
-                        type: 'Residencial',
-                        address: randomAddr,
-                        description: 'Simulado de solicitud de prueba.',
-                        status: 'Nuevo',
-                        date: new Date().toISOString().split('T')[0],
-                        totalPrice: 150,
-                        items: [{ description: 'Servicio técnico revisión urgente', quantity: 1, price: 150 }]
-                      }, ...leads]);
-                      showToast(`Lead de simulación '${randomName}' creado con éxito.`, 'success');
-                    }}>
-                      <Plus size={16} /> Crear Lead de Simulación
-                    </button>
+              <div className="leads-container animate-fade-in">
+                <div className="filter-bar" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'stretch' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+                    <div>
+                      <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <Users size={22} className="text-cool" /> Solicitudes de Climatización Entrantes (Leads)
+                      </h3>
+                      <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', margin: '0.2rem 0 0 0' }}>
+                        Gestiona contactos recientes, conviértelos en clientes y genera propuestas técnicas.
+                      </p>
+                    </div>
+                    <div className="filter-actions">
+                      <button className="btn-primary" onClick={() => {
+                        const names = ['Carlos Benítez', 'Restaurante El Patio', 'Clínica Oftalmológica Sol', 'Laura Vega'];
+                        const randomName = names[Math.floor(Math.random() * names.length)];
+                        const newId = `lead-${Date.now()}`;
+                        setLeads([{
+                          id: newId,
+                          name: randomName,
+                          company: randomName.includes('Restaurante') || randomName.includes('Clínica') ? randomName : 'Particular',
+                          email: 'contacto@cliente.es',
+                          phone: '+34 611 ' + Math.floor(100000 + Math.random() * 900000),
+                          type: 'Residencial',
+                          address: 'Calle Gran Vía 55, Madrid',
+                          description: 'Solicitud urgente de sustitución de split inverter.',
+                          status: 'Nuevo',
+                          date: new Date().toISOString().split('T')[0],
+                          daysWithoutResponse: 0,
+                          externalInvoiceRef: '',
+                          paymentStatus: 'No facturado',
+                          totalPrice: 450,
+                          items: [{ description: 'Sustitución equipo e instalación rápida', quantity: 1, price: 450 }]
+                        }, ...leads]);
+                        showToast(`Nuevo lead '${randomName}' registrado en la plataforma.`, 'success');
+                      }}>
+                        <Plus size={16} /> Crear Lead de Prueba
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Filter Pills */}
+                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    {[
+                      { key: 'all', label: `Todos los Leads (${leads.length})` },
+                      { key: 'new', label: `🟢 Nuevos (${leads.filter(l => l.status === 'Nuevo' || l.status === 'Contactado').length})` },
+                      { key: 'quotes', label: `🟡 Presupuestados (${leads.filter(l => l.status.includes('Presupuesto')).length})` }
+                    ].map(f => (
+                      <button
+                        key={f.key}
+                        onClick={() => setLeadFilter(f.key)}
+                        className={`admin-subnav-item ${leadFilter === f.key ? 'active' : ''}`}
+                        style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem' }}
+                      >
+                        {f.label}
+                      </button>
+                    ))}
                   </div>
                 </div>
 
-                <div className="table-responsive">
+                <div className="table-responsive glass-card" style={{ padding: '1rem' }}>
                   <table className="klimatik-table">
                     <thead>
                       <tr>
-                        <th>Cliente / Empresa</th>
-                        <th>Tipo</th>
+                        <th>Cliente / Contacto</th>
+                        <th>Tipo Intervención</th>
                         <th>Dirección</th>
-                        <th>Descripción del Trabajo</th>
-                        <th>Estado</th>
-                        <th>Acciones de Automatización</th>
+                        <th>Descripción</th>
+                        <th>Importe Est.</th>
+                        <th>Estado Actual</th>
+                        <th>Acción / Flujo Comercial</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {leads.map((lead) => (
+                      {leads
+                        .filter(lead => {
+                          if (leadFilter === 'new') return lead.status === 'Nuevo' || lead.status === 'Contactado';
+                          if (leadFilter === 'quotes') return lead.status.includes('Presupuesto');
+                          return true;
+                        })
+                        .map((lead) => (
                         <tr key={lead.id}>
                           <td>
                             <div className="client-cell">
-                              <span className="client-name">{lead.name}</span>
-                              <span className="client-contact">{lead.phone} | {lead.email}</span>
+                              <strong className="client-name" style={{ color: '#fff' }}>{lead.name}</strong>
+                              <span className="client-contact" style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>{lead.phone} | {lead.email}</span>
                             </div>
                           </td>
                           <td>
@@ -1873,70 +2434,49 @@ function App() {
                             </span>
                           </td>
                           <td>
-                            <div className="d-flex align-center gap-2 text-secondary" style={{ fontSize: '0.85rem' }}>
+                            <div className="d-flex align-center gap-2 text-secondary" style={{ fontSize: '0.82rem' }}>
                               <MapPin size={14} className="text-cool" /> {lead.address}
                             </div>
                           </td>
-                          <td style={{ maxWidth: '280px', fontSize: '0.88rem', color: 'var(--text-secondary)' }}>
+                          <td style={{ maxWidth: '220px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
                             {lead.description}
                           </td>
-                          <td>
-                            <span className={`badge badge-${lead.status === 'Nuevo' ? 'new' : lead.status === 'Presupuesto Enviado' ? 'quote' : lead.status === 'Programado' ? 'scheduled' : 'completed'}`}>
-                              {lead.status}
-                            </span>
+                          <td style={{ fontWeight: 700, color: 'var(--accent-cool)' }}>
+                            {lead.totalPrice}€
                           </td>
                           <td>
-                            <div className="action-buttons">
+                            {getStatusBadge(lead.status)}
+                          </td>
+                          <td>
+                            <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                              {!clients.some(c => c.originLeadId === lead.id) && lead.status !== 'Descartado' && (
+                                <button 
+                                  className="btn-primary" 
+                                  style={{ fontSize: '0.75rem', padding: '0.3rem 0.5rem', background: '#10b981', borderColor: '#10b981' }}
+                                  onClick={() => handleConvertLeadToClient(lead)}
+                                >
+                                  <UserPlus size={13} /> Convertir a Cliente
+                                </button>
+                              )}
                               <button 
-                                className="btn-icon-only whatsapp" 
-                                title="Abrir en Chat/Simular Mensajes"
+                                className="btn-secondary" 
+                                style={{ fontSize: '0.75rem', padding: '0.3rem 0.5rem' }}
                                 onClick={() => {
-                                  setWaSelectedLeadId(lead.id);
-                                  setAdminTab('whatsapp');
-                                  showToast(`Chat abierto con ${lead.name.split(' (')[0]}`, 'info');
+                                  setSelectedLeadForEdit(lead);
+                                  setShowLeadModal(true);
                                 }}
                               >
-                                <MessageSquare size={16} />
+                                <Edit size={13} /> Editar
                               </button>
-                              
-                              <button 
-                                className="btn-icon-only edit" 
-                                title="Generar Presupuesto/Factura"
-                                onClick={() => {
-                                  setSelectedDocLeadId(lead.id);
-                                  // Pre-populate items
-                                  setInvoiceItemsList(lead.items || []);
-                                  setAdminTab('documents');
-                                  showToast(`Datos de ${lead.name.split(' (')[0]} precargados para Presupuesto/Factura`, 'info');
-                                }}
-                              >
-                                <FileText size={16} />
-                              </button>
-                              
-                              <button 
-                                className="btn-icon-only" 
-                                title="Simular Programar Instalación en Rota"
-                                onClick={() => {
-                                  setAdminShiftClient(lead.name);
-                                  setAdminShiftAddress(lead.address);
-                                  setAdminShiftDesc(lead.description);
-                                  setAdminShiftType(lead.type === 'Industrial' ? 'Instalación' : lead.type);
-                                  setAdminShiftDate(new Date().toISOString().split('T')[0]);
-                                  setAdminTab('rota');
-                                  showToast(`Datos de ${lead.name.split(' (')[0]} precargados en Rota de turnos`, 'info');
-                                }}
-                              >
-                                <Calendar size={16} />
-                              </button>
-
-                              <button 
-                                className="btn-icon-only" 
-                                title="Eliminar Lead"
-                                onClick={() => handleDeleteLead(lead.id)}
-                                style={{ color: 'var(--danger)' }}
-                              >
-                                <Trash2 size={15} />
-                              </button>
+                              {lead.status !== 'Descartado' && (
+                                <button 
+                                  className="btn-secondary text-danger" 
+                                  style={{ fontSize: '0.75rem', padding: '0.3rem 0.5rem' }}
+                                  onClick={() => handleDiscardLead(lead.id)}
+                                >
+                                  Descartar
+                                </button>
+                              )}
                             </div>
                           </td>
                         </tr>
@@ -1947,8 +2487,439 @@ function App() {
               </div>
             )}
 
-            {/* TAB CONTENT: WHATSAPP SIMULATOR */}
-            {adminTab === 'whatsapp' && (
+            {/* TAB CONTENT: CLIENTES */}
+            {adminTab === 'clients' && (
+              <div className="leads-container animate-fade-in">
+                <div className="filter-bar" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'stretch' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+                    <div>
+                      <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <UserCheck size={22} className="text-cool" /> Cartera de Clientes
+                      </h3>
+                      <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', margin: '0.2rem 0 0 0' }}>
+                        Gestión completa de particulares y empresas, NIF/CIF, direcciones de instalación y Ficha 360º.
+                      </p>
+                    </div>
+                    <div className="filter-actions">
+                      <button className="btn-primary" onClick={() => {
+                        setSelectedClientForEdit(null);
+                        setShowClientModal(true);
+                      }}>
+                        <Plus size={16} /> Alta de Nuevo Cliente
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Filter Pills */}
+                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    {[
+                      { key: 'all', label: `Todos los Clientes (${clients.length})` },
+                      { key: 'particular', label: `👤 Particulares (${clients.filter(c => c.clientType === 'Particular').length})` },
+                      { key: 'empresa', label: `🏢 Empresas (${clients.filter(c => c.clientType === 'Empresa').length})` }
+                    ].map(f => (
+                      <button
+                        key={f.key}
+                        onClick={() => setClientFilter(f.key)}
+                        className={`admin-subnav-item ${clientFilter === f.key ? 'active' : ''}`}
+                        style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem' }}
+                      >
+                        {f.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="table-responsive glass-card" style={{ padding: '1rem' }}>
+                  <table className="klimatik-table">
+                    <thead>
+                      <tr>
+                        <th>Cliente / Razón Social</th>
+                        <th>Tipo / NIF-CIF</th>
+                        <th>Persona Contacto</th>
+                        <th>Teléfono / Email</th>
+                        <th>Direcciones Instalación</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {clients
+                        .filter(c => {
+                          if (clientFilter === 'particular') return c.clientType === 'Particular';
+                          if (clientFilter === 'empresa') return c.clientType === 'Empresa';
+                          return true;
+                        })
+                        .map(client => (
+                          <tr key={client.id}>
+                            <td>
+                              <div className="client-cell">
+                                <strong className="client-name" style={{ color: '#fff' }}>{client.name}</strong>
+                                {client.company && client.company !== 'Particular' && (
+                                  <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{client.company}</span>
+                                )}
+                              </div>
+                            </td>
+                            <td>
+                              <span className={`badge ${client.clientType === 'Empresa' ? 'badge-completed' : 'badge-new'}`}>
+                                {client.clientType}
+                              </span>
+                              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                                NIF: <strong>{client.nifCif}</strong>
+                              </div>
+                            </td>
+                            <td style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                              {client.contactPerson || client.name}
+                            </td>
+                            <td style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
+                              <div>📞 {client.phone}</div>
+                              <div>✉️ {client.email}</div>
+                            </td>
+                            <td>
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                                <span style={{ fontSize: '0.82rem', color: '#fff' }}>📍 {client.mainAddress}</span>
+                                {client.installationAddresses && client.installationAddresses.length > 1 && (
+                                  <span className="client-address-pill" style={{ fontSize: '0.72rem', display: 'inline-block', width: 'fit-content' }}>
+                                    +{client.installationAddresses.length - 1} sedes de instalación
+                                  </span>
+                                )}
+                              </div>
+                            </td>
+                            <td>
+                              <span className={`badge ${client.status === 'activo' ? 'badge-activo' : 'badge-inactivo'}`}>
+                                {client.status === 'activo' ? '🟢 Activo' : '🔴 Inactivo'}
+                              </span>
+                            </td>
+                            <td>
+                              <div style={{ display: 'flex', gap: '0.4rem' }}>
+                                <button 
+                                  className="btn-primary" 
+                                  style={{ fontSize: '0.75rem', padding: '0.3rem 0.5rem', background: '#38bdf8', borderColor: '#38bdf8' }}
+                                  onClick={() => setSelectedClientFor360View(client)}
+                                >
+                                  <Eye size={13} /> Ficha 360º
+                                </button>
+                                <button 
+                                  className="btn-secondary" 
+                                  style={{ fontSize: '0.75rem', padding: '0.3rem 0.5rem' }}
+                                  onClick={() => {
+                                    setSelectedClientForEdit(client);
+                                    setShowClientModal(true);
+                                  }}
+                                >
+                                  <Edit size={13} /> Editar
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* TAB CONTENT: PRESUPUESTOS */}
+            {adminTab === 'budgets' && (
+              <div className="leads-container animate-fade-in">
+                <div className="filter-bar" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'stretch' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+                    <div>
+                      <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <FileText size={22} className="text-cool" /> Gestión Comercial de Presupuestos
+                      </h3>
+                      <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', margin: '0.2rem 0 0 0' }}>
+                        Propuestas técnicas presentadas a clientes, control de vencimiento y cierre comercial por WhatsApp.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Summary KPI Cards for Budgets */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
+                    <div className="glass-card" style={{ padding: '1rem', borderLeft: '4px solid #38bdf8' }}>
+                      <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Total Presupuestado Activo</span>
+                      <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#fff', marginTop: '0.2rem' }}>
+                        {leads.filter(l => l.status.includes('Presupuesto') || l.status === 'Aceptado').reduce((acc, curr) => acc + (curr.totalPrice || 0), 0).toFixed(2)}€
+                      </div>
+                    </div>
+
+                    <div className="glass-card" style={{ padding: '1rem', borderLeft: '4px solid #f59e0b' }}>
+                      <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>En Riesgo (&gt;5 Días sin Respuesta)</span>
+                      <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#f59e0b', marginTop: '0.2rem' }}>
+                        {leads.filter(l => l.status === 'Presupuesto enviado' && l.daysWithoutResponse > 5).length} ofertas
+                      </div>
+                    </div>
+
+                    <div className="glass-card" style={{ padding: '1rem', borderLeft: '4px solid #10b981' }}>
+                      <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Presupuestos Aceptados</span>
+                      <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#10b981', marginTop: '0.2rem' }}>
+                        {leads.filter(l => l.status === 'Aceptado').length} obras listas
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="table-responsive glass-card" style={{ padding: '1rem' }}>
+                  <table className="klimatik-table">
+                    <thead>
+                      <tr>
+                        <th>Cliente / Contacto</th>
+                        <th>Tipo Intervención</th>
+                        <th>Detalles / Necesidad</th>
+                        <th>Antigüedad Envío</th>
+                        <th>Importe Total (€)</th>
+                        <th>Estado Comercial</th>
+                        <th>Acciones de Seguimiento</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {leads
+                        .filter(l => l.status.includes('Presupuesto') || l.status === 'Aceptado')
+                        .map(lead => (
+                          <tr key={lead.id}>
+                            <td>
+                              <div className="client-cell">
+                                <strong className="client-name" style={{ color: '#fff' }}>{lead.name}</strong>
+                                <span className="client-contact" style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>{lead.phone}</span>
+                              </div>
+                            </td>
+                            <td><span className="badge badge-new">{lead.type}</span></td>
+                            <td style={{ maxWidth: '240px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{lead.description}</td>
+                            <td>
+                              {lead.daysWithoutResponse >= 5 ? (
+                                <span className="badge badge-quote" style={{ background: 'rgba(245, 158, 11, 0.2)', color: '#f59e0b', fontWeight: 700 }}>
+                                  ⚠️ {lead.daysWithoutResponse} días
+                                </span>
+                              ) : (
+                                <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{lead.daysWithoutResponse || 0} días</span>
+                              )}
+                            </td>
+                            <td style={{ fontWeight: 700, color: 'var(--accent-cool)' }}>{lead.totalPrice}€</td>
+                            <td>{getStatusBadge(lead.status)}</td>
+                            <td>
+                              <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                                <button 
+                                  className="btn-primary" 
+                                  style={{ fontSize: '0.75rem', padding: '0.3rem 0.5rem', background: '#f59e0b', borderColor: '#f59e0b', color: '#000' }}
+                                  onClick={() => {
+                                    setWaSelectedLeadId(lead.id);
+                                    setAdminTab('whatsapp');
+                                  }}
+                                >
+                                  📱 Recordatorio WhatsApp
+                                </button>
+                                {lead.status !== 'Aceptado' && (
+                                  <button 
+                                    className="btn-primary" 
+                                    style={{ fontSize: '0.75rem', padding: '0.3rem 0.5rem', background: '#10b981', borderColor: '#10b981' }}
+                                    onClick={() => handleTransitionStatus(lead.id, 'Aceptado')}
+                                  >
+                                    <CheckCircle size={13} /> Marcar Aceptado
+                                  </button>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* TAB CONTENT: CALENDARIO & CITAS */}
+            {adminTab === 'calendar' && (
+              <div className="leads-container animate-fade-in">
+                <div className="filter-bar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+                  <div>
+                    <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <Calendar size={22} className="text-cool" /> Agenda de Citas e Instalaciones
+                    </h3>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', margin: '0.2rem 0 0 0' }}>
+                      Programación semanal de servicios en obra y asignación técnica.
+                    </p>
+                  </div>
+                  <button className="btn-primary" onClick={() => setShowShiftModal(true)}>
+                    <Plus size={16} /> Programar Nueva Cita
+                  </button>
+                </div>
+
+                <div className="calendar-wrapper glass-card" style={{ padding: '1.5rem' }}>
+                  <div className="calendar-header">
+                    <h4>Mayo 2026 - Semana Activa</h4>
+                    <div style={{ display: 'flex', gap: '1rem', fontSize: '0.8rem' }}>
+                      <span className="d-flex align-center gap-2"><span style={{ width: '12px', height: '12px', borderRadius: '3px', background: 'var(--accent-cool)' }}></span> Instalaciones Programadas</span>
+                      <span className="d-flex align-center gap-2"><span style={{ width: '12px', height: '12px', borderRadius: '3px', background: 'var(--accent-warm)' }}></span> Urgencias / Cargas de Gas</span>
+                    </div>
+                  </div>
+
+                  <div className="calendar-grid">
+                    <div className="calendar-day-header">Lunes (24)</div>
+                    <div className="calendar-day-header">Martes (25)</div>
+                    <div className="calendar-day-header">Miércoles (26)</div>
+                    <div className="calendar-day-header">Jueves (27)</div>
+                    <div className="calendar-day-header">Viernes (28)</div>
+                    <div className="calendar-day-header">Sábado (29)</div>
+                    <div className="calendar-day-header">Domingo (30)</div>
+
+                    <div className="calendar-day-cell today">
+                      <span className="calendar-day-number">HOY (Lunes 24)</span>
+                      {shifts.filter(s => s.date === '2026-05-24').map(s => (
+                        <div key={s.id} className="calendar-shift">
+                          <span className="shift-time">{s.time}</span>
+                          <span className="shift-assignee"><strong>{employeesList.find(e => e.id === s.employeeId)?.name.split(' ')[0] || 'Técnico'}</strong></span>
+                          <span className="shift-client">{s.client}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="calendar-day-cell">
+                      <span className="calendar-day-number">Martes 25</span>
+                      {shifts.filter(s => s.date === '2026-05-25').map(s => (
+                        <div key={s.id} className="calendar-shift">
+                          <span className="shift-time">{s.time}</span>
+                          <span className="shift-assignee"><strong>{employeesList.find(e => e.id === s.employeeId)?.name.split(' ')[0] || 'Técnico'}</strong></span>
+                          <span className="shift-client">{s.client}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="calendar-day-cell">
+                      <span className="calendar-day-number">Miércoles 26</span>
+                      {shifts.filter(s => s.date === '2026-05-26').map(s => (
+                        <div key={s.id} className="calendar-shift warm">
+                          <span className="shift-time">{s.time}</span>
+                          <span className="shift-assignee"><strong>{employeesList.find(e => e.id === s.employeeId)?.name.split(' ')[0] || 'Técnico'}</strong></span>
+                          <span className="shift-client">{s.client}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="calendar-day-cell">
+                      <span className="calendar-day-number">Jueves 27</span>
+                      {shifts.filter(s => s.date === '2026-05-27').map(s => (
+                        <div key={s.id} className="calendar-shift">
+                          <span className="shift-time">{s.time}</span>
+                          <span className="shift-assignee"><strong>{employeesList.find(e => e.id === s.employeeId)?.name.split(' ')[0] || 'Técnico'}</strong></span>
+                          <span className="shift-client">{s.client}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="calendar-day-cell">
+                      <span className="calendar-day-number">Viernes 28</span>
+                      {shifts.filter(s => s.date === '2026-05-28').map(s => (
+                        <div key={s.id} className="calendar-shift">
+                          <span className="shift-time">{s.time}</span>
+                          <span className="shift-assignee"><strong>{employeesList.find(e => e.id === s.employeeId)?.name.split(' ')[0] || 'Técnico'}</strong></span>
+                          <span className="shift-client">{s.client}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="calendar-day-cell">
+                      <span className="calendar-day-number">Sábado 29</span>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Solo Urgencias 24h</span>
+                    </div>
+
+                    <div className="calendar-day-cell">
+                      <span className="calendar-day-number">Domingo 30</span>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Cerrado</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* TAB CONTENT: TRABAJOS */}
+            {adminTab === 'jobs' && (
+              <div className="leads-container animate-fade-in">
+                <div className="filter-bar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+                  <div>
+                    <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <Briefcase size={22} className="text-cool" /> Control de Trabajos y Obras
+                    </h3>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', margin: '0.2rem 0 0 0' }}>
+                      El nexo entre Oficina ➔ Operario ➔ Administración. Consulta el estado de cada obra y su parte firmado.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="table-responsive glass-card" style={{ padding: '1rem' }}>
+                  <table className="klimatik-table">
+                    <thead>
+                      <tr>
+                        <th>Cliente / Obra</th>
+                        <th>Tipo Intervención</th>
+                        <th>Dirección Obra</th>
+                        <th>Técnico Asignado</th>
+                        <th>Estado Actual</th>
+                        <th>Parte de Trabajo</th>
+                        <th>Próxima Acción</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {leads.map(job => (
+                        <tr key={job.id}>
+                          <td>
+                            <div className="client-cell">
+                              <strong className="client-name" style={{ color: '#fff' }}>{job.name}</strong>
+                              <span className="client-contact" style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>{job.phone}</span>
+                            </div>
+                          </td>
+                          <td><span className="badge badge-new">{job.type}</span></td>
+                          <td style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>📍 {job.address}</td>
+                          <td>
+                            <span style={{ fontSize: '0.82rem', color: 'var(--accent-warm)', fontWeight: 600 }}>
+                              👨‍🔧 Carlos Martín
+                            </span>
+                          </td>
+                          <td>{getStatusBadge(job.status)}</td>
+                          <td>
+                            {job.signedParte ? (
+                              <span className="badge badge-completed" title={`Firmado por ${job.signedParte.clientName}`}>
+                                ✅ Firmado ({job.signedParte.signedAt})
+                              </span>
+                            ) : (
+                              <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Pendiente de Obra</span>
+                            )}
+                          </td>
+                          <td>
+                            <div style={{ display: 'flex', gap: '0.4rem' }}>
+                              {(job.status === 'Terminado' || job.status === 'Pendiente de gestión administrativa') ? (
+                                <button 
+                                  className="btn-primary" 
+                                  style={{ fontSize: '0.75rem', padding: '0.3rem 0.5rem', background: '#ef4444', borderColor: '#ef4444' }}
+                                  onClick={() => {
+                                    setAdminTab('admin');
+                                    setAdminSubTab('pending_admin');
+                                  }}
+                                >
+                                  📋 Ir a Administración
+                                </button>
+                              ) : (
+                                <button 
+                                  className="btn-secondary" 
+                                  style={{ fontSize: '0.75rem', padding: '0.3rem 0.5rem' }}
+                                  onClick={() => {
+                                    setWaSelectedLeadId(job.id);
+                                    setAdminTab('whatsapp');
+                                  }}
+                                >
+                                  📱 Avisar WhatsApp
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* TAB CONTENT: WHATSAPP & AUTOMATIZACIONES */}
+            {(adminTab === 'whatsapp' || adminTab === 'automations') && (
               <div className="leads-container">
                 <div className="filter-bar">
                   <div>
@@ -2105,15 +3076,264 @@ function App() {
               </div>
             )}
 
-            {/* TAB CONTENT: INVOICES & ESTIMATES BUILDER */}
-            {adminTab === 'documents' && (
-              <div className="leads-container">
-                <div className="filter-bar">
-                  <div>
-                    <h3>Creador Técnico de Presupuestos y Facturas</h3>
-                    <p>Marta puede estructurar los costes de climatizadores, recargas e instalaciones fácilmente.</p>
+            {/* TAB CONTENT: GESTIÓN ADMINISTRATIVA (PUENTE EXTERNALIZADO) */}
+            {(adminTab === 'admin' || adminTab === 'documents') && (
+              <div className="leads-container animate-fade-in">
+                
+                {/* Header Banner */}
+                <div className="filter-bar" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '0.5rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+                    <div>
+                      <h3 style={{ margin: 0, fontSize: '1.4rem', color: '#fff', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <Briefcase size={22} className="text-cool" /> Centro de Gestión Administrativa
+                      </h3>
+                      <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', margin: '0.25rem 0 0 0' }}>
+                        Organiza el trabajo previo y posterior. Enlaza el parte de obra con tu programa externo de facturación (Contasimple, Holded, Factusol, etc.).
+                      </p>
+                    </div>
+                    <div className="badge badge-completed" style={{ fontSize: '0.8rem', padding: '0.4rem 0.8rem' }}>
+                      <span>Puente Administrativo Externe</span>
+                    </div>
                   </div>
                 </div>
+
+                {/* Subnav Pills */}
+                <div className="admin-subnav">
+                  <div 
+                    className={`admin-subnav-item ${adminSubTab === 'pending_admin' ? 'active' : ''}`}
+                    onClick={() => setAdminSubTab('pending_admin')}
+                  >
+                    <AlertTriangle size={16} /> Pendientes de Procesar ({leads.filter(l => l.status === 'Terminado' || l.status === 'Pendiente de gestión administrativa').length})
+                  </div>
+                  <div 
+                    className={`admin-subnav-item ${adminSubTab === 'quotes_followup' ? 'active' : ''}`}
+                    onClick={() => setAdminSubTab('quotes_followup')}
+                  >
+                    <Clock size={16} /> Seguimiento Presupuestos ({leads.filter(l => l.status === 'Presupuesto enviado' || l.status === 'Presupuesto preparado').length})
+                  </div>
+                  <div 
+                    className={`admin-subnav-item ${adminSubTab === 'external_history' ? 'active' : ''}`}
+                    onClick={() => setAdminSubTab('external_history')}
+                  >
+                    <ExternalLink size={16} /> Histórico Volcado Externe ({leads.filter(l => l.status === 'Pasado a facturación externa' || l.status === 'Finalizado').length})
+                  </div>
+                  <div 
+                    className={`admin-subnav-item ${adminSubTab === 'doc_builder' ? 'active' : ''}`}
+                    onClick={() => setAdminSubTab('doc_builder')}
+                  >
+                    <FileText size={16} /> Creador Técnico Fichas/Presupuestos
+                  </div>
+                </div>
+
+                {/* SUBTAB 1: PENDIENTES DE PROCESAR */}
+                {adminSubTab === 'pending_admin' && (
+                  <div className="glass-card" style={{ padding: '1.5rem' }}>
+                    <div style={{ marginBottom: '1.25rem' }}>
+                      <h4 style={{ margin: 0, fontSize: '1.1rem', color: '#fff' }}>Trabajos Finalizados en Obra Pendientes de Facturación</h4>
+                      <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginTop: '0.2rem' }}>
+                        Revisa la información técnica registrada por los instaladores y marca la información cuando la hayas volcado a tu programa externo de facturación.
+                      </p>
+                    </div>
+
+                    {leads.filter(l => l.status === 'Terminado' || l.status === 'Pendiente de gestión administrativa').length === 0 ? (
+                      <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>
+                        <CheckCircle size={40} style={{ color: '#10b981', marginBottom: '0.5rem' }} />
+                        <p>¡No hay trabajos pendientes de gestión administrativa en este momento!</p>
+                      </div>
+                    ) : (
+                      <div className="table-responsive">
+                        <table className="klimatik-table">
+                          <thead>
+                            <tr>
+                              <th>Cliente / Contacto</th>
+                              <th>Tipo Servicio</th>
+                              <th>Descripción Técnica Obra</th>
+                              <th>Importe (€)</th>
+                              <th>Estado Actual</th>
+                              <th>Acción de Gestión</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {leads.filter(l => l.status === 'Terminado' || l.status === 'Pendiente de gestión administrativa').map(lead => (
+                              <tr key={lead.id}>
+                                <td>
+                                  <div className="client-cell">
+                                    <span className="client-name">{lead.name}</span>
+                                    <span className="client-contact">{lead.phone} | {lead.address}</span>
+                                  </div>
+                                </td>
+                                <td><span className="badge badge-new">{lead.type}</span></td>
+                                <td style={{ maxWidth: '280px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                                  {lead.description}
+                                </td>
+                                <td style={{ fontWeight: 700, color: 'var(--accent-cool)' }}>{lead.totalPrice}€</td>
+                                <td>{getStatusBadge(lead.status)}</td>
+                                <td>
+                                  <button 
+                                    className="btn-primary"
+                                    onClick={() => handleTransitionStatus(lead.id, 'Pasado a facturación externa')}
+                                    style={{ fontSize: '0.8rem', padding: '0.45rem 0.75rem' }}
+                                  >
+                                    <ExternalLink size={14} /> Pasar a Facturación Externa
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* SUBTAB 2: SEGUIMIENTO PRESUPUESTOS */}
+                {adminSubTab === 'quotes_followup' && (
+                  <div className="glass-card" style={{ padding: '1.5rem' }}>
+                    <div style={{ marginBottom: '1.25rem' }}>
+                      <h4 style={{ margin: 0, fontSize: '1.1rem', color: '#fff' }}>Seguimiento Activo de Presupuestos Enviados</h4>
+                      <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginTop: '0.2rem' }}>
+                        Localiza presupuestos abiertos sin respuesta del cliente e inicia recordatorios de cierre por WhatsApp.
+                      </p>
+                    </div>
+
+                    <div className="table-responsive">
+                      <table className="klimatik-table">
+                        <thead>
+                          <tr>
+                            <th>Cliente</th>
+                            <th>Presupuesto</th>
+                            <th>Fecha Envío</th>
+                            <th>Días sin Respuesta</th>
+                            <th>Importe (€)</th>
+                            <th>Acción de Seguimiento</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {leads.filter(l => l.status === 'Presupuesto enviado' || l.status === 'Presupuesto preparado').map(lead => (
+                            <tr key={lead.id}>
+                              <td>
+                                <div className="client-cell">
+                                  <span className="client-name">{lead.name}</span>
+                                  <span className="client-contact">{lead.phone}</span>
+                                </div>
+                              </td>
+                              <td style={{ maxWidth: '240px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{lead.description}</td>
+                              <td style={{ fontSize: '0.85rem' }}>{lead.date}</td>
+                              <td>
+                                {lead.daysWithoutResponse >= 5 ? (
+                                  <span className="badge badge-quote" style={{ background: 'rgba(245, 158, 11, 0.2)', color: '#f59e0b', fontWeight: 700 }}>
+                                    ⚠️ {lead.daysWithoutResponse} días
+                                  </span>
+                                ) : (
+                                  <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{lead.daysWithoutResponse || 0} días</span>
+                                )}
+                              </td>
+                              <td style={{ fontWeight: 700, color: 'var(--warning)' }}>{lead.totalPrice}€</td>
+                              <td>
+                                <div className="action-buttons" style={{ display: 'flex', gap: '0.5rem' }}>
+                                  <button 
+                                    className="btn-icon-only whatsapp"
+                                    title="Enviar Recordatorio por WhatsApp"
+                                    onClick={() => {
+                                      setWaSelectedLeadId(lead.id);
+                                      setAdminTab('whatsapp');
+                                    }}
+                                  >
+                                    <MessageSquare size={16} />
+                                  </button>
+                                  <button 
+                                    className="btn-primary"
+                                    style={{ fontSize: '0.78rem', padding: '0.4rem 0.65rem', background: '#10b981', borderColor: '#10b981' }}
+                                    onClick={() => handleTransitionStatus(lead.id, 'Aceptado')}
+                                  >
+                                    <CheckCircle size={14} /> Marcar Aceptado
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
+                {/* SUBTAB 3: HISTÓRICO Y REGISTRO EXTERNO */}
+                {adminSubTab === 'external_history' && (
+                  <div className="glass-card" style={{ padding: '1.5rem' }}>
+                    <div style={{ marginBottom: '1.25rem' }}>
+                      <h4 style={{ margin: 0, fontSize: '1.1rem', color: '#fff' }}>Registro de Trabajos Volcados a Facturación Externa</h4>
+                      <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginTop: '0.2rem' }}>
+                        Consulta la trazabilidad de los trabajos trasladados a tu software contable/facturación y el estado del seguimiento.
+                      </p>
+                    </div>
+
+                    <div className="table-responsive">
+                      <table className="klimatik-table">
+                        <thead>
+                          <tr>
+                            <th>Cliente / Empresa</th>
+                            <th>Referencia Software Externo</th>
+                            <th>Importe Obra</th>
+                            <th>Estado Klimatik</th>
+                            <th>Comprobación de Cobro (Seguimiento)</th>
+                            <th>Acción</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {leads.filter(l => l.status === 'Pasado a facturación externa' || l.status === 'Finalizado').map(lead => (
+                            <tr key={lead.id}>
+                              <td>
+                                <div className="client-cell">
+                                  <span className="client-name">{lead.name}</span>
+                                  <span className="client-contact">{lead.address}</span>
+                                </div>
+                              </td>
+                              <td>
+                                <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--accent-cool)', background: 'rgba(56, 189, 248, 0.1)', padding: '0.2rem 0.6rem', borderRadius: '4px' }}>
+                                  {lead.externalInvoiceRef || 'FACT-2026-REG'}
+                                </span>
+                              </td>
+                              <td style={{ fontWeight: 700, color: '#fff' }}>{lead.totalPrice}€</td>
+                              <td>{getStatusBadge(lead.status)}</td>
+                              <td>
+                                <span className={`badge ${lead.paymentStatus === 'Cobrado' || lead.paymentStatus === 'Cobro verificado' ? 'badge-completed' : 'badge-quote'}`}>
+                                  {lead.paymentStatus || 'Pendiente de comprobar'}
+                                </span>
+                              </td>
+                              <td>
+                                {lead.paymentStatus !== 'Cobro verificado' && lead.paymentStatus !== 'Cobrado' ? (
+                                  <button 
+                                    className="btn-secondary"
+                                    style={{ fontSize: '0.78rem', padding: '0.35rem 0.65rem' }}
+                                    onClick={() => {
+                                      setLeads(leads.map(l => l.id === lead.id ? { ...l, paymentStatus: 'Cobro verificado', status: 'Finalizado' } : l));
+                                      showToast(`Cobro verificado para ${lead.name.split(' (')[0]}. Trabajo marcado como Finalizado.`, 'success');
+                                    }}
+                                  >
+                                    <CheckCircle size={13} /> Confirmar Cobro Banco
+                                  </button>
+                                ) : (
+                                  <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>✅ Finalizado</span>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+
+                {/* SUBTAB 4: CREADOR TÉCNICO DE DOCUMENTOS */}
+                {adminSubTab === 'doc_builder' && (
+                  <div>
+                    <div className="filter-bar" style={{ marginBottom: '1rem' }}>
+                      <div>
+                        <h3>Creador Técnico de Presupuestos y Fichas</h3>
+                        <p>Estructura los costes de climatizadores, recargas e instalaciones fácilmente.</p>
+                      </div>
+                    </div>
 
                 <div className="doc-builder-grid">
                   {/* Left Column: Configuration form */}
@@ -2312,6 +3532,8 @@ function App() {
                 </div>
               </div>
             )}
+          </div>
+        )}
 
             {/* TAB CONTENT: ROTA & SHIFT SCHEDULER */}
             {adminTab === 'rota' && (
@@ -2558,6 +3780,367 @@ function App() {
                     </div>
                   </div>
                 </div>
+              </div>
+            )}
+
+            {/* TAB CONTENT: EQUIPO / USUARIOS INTERNOS */}
+            {adminTab === 'team' && (
+              <div className="leads-container animate-fade-in">
+                
+                {/* Header Banner */}
+                <div className="filter-bar" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '0.5rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+                    <div>
+                      <h3 style={{ margin: 0, fontSize: '1.4rem', color: '#fff', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <Users size={22} className="text-cool" /> Gestión de Equipo y Usuarios Internos
+                      </h3>
+                      <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', margin: '0.25rem 0 0 0' }}>
+                        Administra los perfiles de tu empresa (Oficina, Administración, Responsables e Instaladores técnicos) y sus turnos de trabajo.
+                      </p>
+                    </div>
+                    <button 
+                      className="btn-primary"
+                      onClick={() => {
+                        setSelectedUserForEdit(null);
+                        setShowUserModal(true);
+                      }}
+                    >
+                      <Plus size={16} /> Crear Nuevo Usuario Interno
+                    </button>
+                  </div>
+                </div>
+
+                {/* Subnav Pills for Team */}
+                <div className="admin-subnav">
+                  <div 
+                    className={`admin-subnav-item ${teamSubTab === 'team_members' ? 'active' : ''}`}
+                    onClick={() => setTeamSubTab('team_members')}
+                  >
+                    <Users size={16} /> Usuarios Internos ({employeesList.filter(e => e.status === 'activo').length} activos)
+                  </div>
+                  <div 
+                    className={`admin-subnav-item ${teamSubTab === 'rota' ? 'active' : ''}`}
+                    onClick={() => setTeamSubTab('rota')}
+                  >
+                    <Calendar size={16} /> Planificador de Turnos (Rota)
+                  </div>
+                  <div 
+                    className={`admin-subnav-item ${teamSubTab === 'clockins' ? 'active' : ''}`}
+                    onClick={() => setTeamSubTab('clockins')}
+                  >
+                    <Clock size={16} /> Fichajes y GPS Satélite
+                  </div>
+                  <div 
+                    className={`admin-subnav-item ${teamSubTab === 'vacations' ? 'active' : ''}`}
+                    onClick={() => setTeamSubTab('vacations')}
+                  >
+                    <CalendarDays size={16} /> Solicitudes de Vacaciones ({vacations.filter(v => v.status === 'Pendiente').length})
+                  </div>
+                </div>
+
+                {/* SUBTAB 1: USUARIOS INTERNOS */}
+                {teamSubTab === 'team_members' && (
+                  <div className="glass-card" style={{ padding: '1.5rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '1rem' }}>
+                      <div>
+                        <h4 style={{ margin: 0, fontSize: '1.1rem', color: '#fff' }}>Plantilla y Roles de la Empresa</h4>
+                        <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginTop: '0.2rem' }}>
+                          Personal interno con acceso al sistema o asignación de partes de trabajo.
+                        </p>
+                      </div>
+                      <div className="badge badge-intro" style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)' }}>
+                        Total: {employeesList.length} registros | {employeesList.filter(e => e.status === 'activo').length} Activos
+                      </div>
+                    </div>
+
+                    <div className="table-responsive">
+                      <table className="klimatik-table">
+                        <thead>
+                          <tr>
+                            <th>Usuario / Empleado</th>
+                            <th>Rol en Empresa</th>
+                            <th>Especialidad Técnica</th>
+                            <th>Teléfono / Email</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {employeesList.map(emp => (
+                            <tr key={emp.id} style={{ opacity: emp.status === 'inactivo' ? 0.6 : 1 }}>
+                              <td>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                  <span style={{ fontSize: '1.5rem' }}>{emp.avatar}</span>
+                                  <div>
+                                    <div style={{ fontWeight: 700, color: '#fff' }}>{emp.name}</div>
+                                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>ID: #{emp.id}</div>
+                                  </div>
+                                </div>
+                              </td>
+                              <td>
+                                <span className={`badge ${emp.role.includes('Administrador') || emp.role.includes('Administración') ? 'badge-completed' : 'badge-new'}`}>
+                                  {emp.role}
+                                </span>
+                              </td>
+                              <td>
+                                <span style={{ fontSize: '0.85rem', color: 'var(--accent-cool)', fontWeight: 600 }}>
+                                  {emp.specialty || 'General'}
+                                </span>
+                              </td>
+                              <td style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                                <div>📞 {emp.phone || '+34 600 000 000'}</div>
+                                <div>✉️ {emp.email || 'usuario@klimatik.es'}</div>
+                              </td>
+                              <td>
+                                <span className={`badge ${emp.status === 'activo' ? 'badge-activo' : 'badge-inactivo'}`}>
+                                  {emp.status === 'activo' ? '🟢 Activo' : '🔴 Inactivo'}
+                                </span>
+                              </td>
+                              <td>
+                                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                  <button 
+                                    className="btn-secondary" 
+                                    style={{ fontSize: '0.75rem', padding: '0.3rem 0.6rem' }}
+                                    onClick={() => {
+                                      setSelectedUserForEdit(emp);
+                                      setShowUserModal(true);
+                                    }}
+                                  >
+                                    <Edit size={13} /> Editar
+                                  </button>
+                                  <button 
+                                    className={emp.status === 'activo' ? 'btn-secondary text-danger' : 'btn-primary'}
+                                    style={{ fontSize: '0.75rem', padding: '0.3rem 0.6rem' }}
+                                    onClick={() => handleToggleUserStatus(emp.id)}
+                                  >
+                                    {emp.status === 'activo' ? 'Desactivar' : 'Activar'}
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    <div style={{ borderTop: '1px solid var(--border-color)', marginTop: '1.5rem', paddingTop: '1rem', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+                      💡 <strong>Trazabilidad Histórica:</strong> Los usuarios desactivados se mantienen en los registros antiguos de fichajes y obras terminadas, pero quedan excluidos automáticamente de las listas de asignación para nuevas intervenciones.
+                    </div>
+                  </div>
+                )}
+
+                {/* SUBTAB 2: ROTA */}
+                {teamSubTab === 'rota' && (
+                  <div className="glass-card" style={{ padding: '1.5rem' }}>
+                    <div className="filter-bar" style={{ marginBottom: '1.5rem', border: 'none', padding: 0 }}>
+                      <div>
+                        <h4 style={{ margin: 0, fontSize: '1.1rem', color: '#fff' }}>Planificador de Turnos (Rota)</h4>
+                        <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginTop: '0.2rem' }}>
+                          Asigna instaladores a obras y coordina las franjas horarias de servicio.
+                        </p>
+                      </div>
+                      <button className="btn-primary" onClick={() => setShowShiftModal(true)}>
+                        <Plus size={16} /> Crear Nuevo Turno / Cita
+                      </button>
+                    </div>
+
+                    <div className="calendar-wrapper">
+                      <div className="calendar-header">
+                        <h4>Mayo 2026</h4>
+                        <div style={{ display: 'flex', gap: '1rem', fontSize: '0.8rem' }}>
+                          <span className="d-flex align-center gap-2"><span style={{ width: '12px', height: '12px', borderRadius: '3px', background: 'var(--accent-cool)' }}></span> Instaladores Activos</span>
+                          <span className="d-flex align-center gap-2"><span style={{ width: '12px', height: '12px', borderRadius: '3px', background: 'var(--accent-warm)' }}></span> Urgencias / Especiales</span>
+                        </div>
+                      </div>
+
+                      <div className="calendar-grid">
+                        <div className="calendar-day-header">Lunes (24)</div>
+                        <div className="calendar-day-header">Martes (25)</div>
+                        <div className="calendar-day-header">Miércoles (26)</div>
+                        <div className="calendar-day-header">Jueves (27)</div>
+                        <div className="calendar-day-header">Viernes (28)</div>
+                        <div className="calendar-day-header">Sábado (29)</div>
+                        <div className="calendar-day-header">Domingo (30)</div>
+
+                        <div className="calendar-day-cell today">
+                          <span className="calendar-day-number">HOY (Lunes 24)</span>
+                          {shifts.filter(s => s.date === '2026-05-24').map(s => (
+                            <div key={s.id} className="calendar-shift">
+                              <span className="shift-time">{s.time}</span>
+                              <span className="shift-assignee"><strong>{employeesList.find(e => e.id === s.employeeId)?.name.split(' ')[0] || 'Técnico'}</strong></span>
+                              <span className="shift-client">{s.client}</span>
+                            </div>
+                          ))}
+                        </div>
+
+                        <div className="calendar-day-cell">
+                          <span className="calendar-day-number">Martes 25</span>
+                          {shifts.filter(s => s.date === '2026-05-25').map(s => (
+                            <div key={s.id} className="calendar-shift">
+                              <span className="shift-time">{s.time}</span>
+                              <span className="shift-assignee"><strong>{employeesList.find(e => e.id === s.employeeId)?.name.split(' ')[0] || 'Técnico'}</strong></span>
+                              <span className="shift-client">{s.client}</span>
+                            </div>
+                          ))}
+                        </div>
+
+                        <div className="calendar-day-cell">
+                          <span className="calendar-day-number">Miércoles 26</span>
+                          {shifts.filter(s => s.date === '2026-05-26').map(s => (
+                            <div key={s.id} className="calendar-shift warm">
+                              <span className="shift-time">{s.time}</span>
+                              <span className="shift-assignee"><strong>{employeesList.find(e => e.id === s.employeeId)?.name.split(' ')[0] || 'Técnico'}</strong></span>
+                              <span className="shift-client">{s.client}</span>
+                            </div>
+                          ))}
+                        </div>
+
+                        <div className="calendar-day-cell">
+                          <span className="calendar-day-number">Jueves 27</span>
+                          {shifts.filter(s => s.date === '2026-05-27').map(s => (
+                            <div key={s.id} className="calendar-shift">
+                              <span className="shift-time">{s.time}</span>
+                              <span className="shift-assignee"><strong>{employeesList.find(e => e.id === s.employeeId)?.name.split(' ')[0] || 'Técnico'}</strong></span>
+                              <span className="shift-client">{s.client}</span>
+                            </div>
+                          ))}
+                        </div>
+
+                        <div className="calendar-day-cell">
+                          <span className="calendar-day-number">Viernes 28</span>
+                          {shifts.filter(s => s.date === '2026-05-28').map(s => (
+                            <div key={s.id} className="calendar-shift">
+                              <span className="shift-time">{s.time}</span>
+                              <span className="shift-assignee"><strong>{employeesList.find(e => e.id === s.employeeId)?.name.split(' ')[0] || 'Técnico'}</strong></span>
+                              <span className="shift-client">{s.client}</span>
+                            </div>
+                          ))}
+                        </div>
+
+                        <div className="calendar-day-cell">
+                          <span className="calendar-day-number">Sábado 29</span>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Solo Urgencias 24h</span>
+                        </div>
+
+                        <div className="calendar-day-cell">
+                          <span className="calendar-day-number">Domingo 30</span>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Cerrado</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* SUBTAB 3: CLOCKINS */}
+                {teamSubTab === 'clockins' && (
+                  <div className="glass-card" style={{ padding: '1.5rem' }}>
+                    <div style={{ marginBottom: '1.25rem' }}>
+                      <h4 style={{ margin: 0, fontSize: '1.1rem', color: '#fff' }}>Fichaje Diario y Geolocalización GPS</h4>
+                      <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginTop: '0.2rem' }}>
+                        Control horario legal con verificación de coordenadas GPS en tiempo real.
+                      </p>
+                    </div>
+
+                    <div className="whatsapp-grid">
+                      <div className="table-responsive">
+                        <table className="klimatik-table">
+                          <thead>
+                            <tr>
+                              <th>Empleado</th>
+                              <th>Fecha</th>
+                              <th>Entrada</th>
+                              <th>Salida</th>
+                              <th>Estado Jornada</th>
+                              <th>Coordenadas GPS</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {clockIns.map(log => (
+                              <tr key={log.id}>
+                                <td><span style={{ fontWeight: 700, color: '#fff' }}>{log.employeeName}</span></td>
+                                <td>{log.date}</td>
+                                <td><span className="text-cool" style={{ fontWeight: 600 }}>{log.timeIn}</span></td>
+                                <td><span className="text-warm" style={{ fontWeight: 600 }}>{log.timeOut || '--:--'}</span></td>
+                                <td>
+                                  {log.active ? (
+                                    <span className="badge badge-completed"><span className="pulse-indicator" style={{ marginRight: '4px' }}></span> Activo en Obra</span>
+                                  ) : (
+                                    <span className="badge" style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)' }}>Finalizado</span>
+                                  )}
+                                </td>
+                                <td>
+                                  <div style={{ fontSize: '0.8rem', color: 'var(--accent-cool)', display: 'flex', flexDirection: 'column' }}>
+                                    <span>Lat: {log.latitude.toFixed(5)}</span>
+                                    <span>Lng: {log.longitude.toFixed(5)}</span>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+
+                      <div className="glass-card text-left" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                        <h4>Visualización en Mapa Satélite</h4>
+                        <p style={{ fontSize: '0.85rem' }}>Mapeo en vivo de fichajes con validación satelital en el smartphone.</p>
+                        <div className="map-visual-container">
+                          <div className="mock-map">
+                            <div className="map-street street-h1"></div>
+                            <div className="map-street street-h2"></div>
+                            <div className="map-street street-v1"></div>
+                            <div className="map-street street-v2"></div>
+                            {clockIns.map((log, index) => {
+                              const xOffsets = [35, 65, 50];
+                              const yOffsets = [40, 75, 55];
+                              return (
+                                <div key={log.id} className="map-marker" style={{ left: `${xOffsets[index % 3]}%`, top: `${yOffsets[index % 3]}%` }}>
+                                  <div className="marker-pulse"></div>
+                                  <MapPin className="marker-icon" size={24} style={{ color: log.active ? 'var(--success)' : 'var(--accent-cool)' }} />
+                                  <div className="marker-label">{log.employeeName.split(' ')[0]} ({log.timeIn})</div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* SUBTAB 4: VACATIONS */}
+                {teamSubTab === 'vacations' && (
+                  <div className="glass-card" style={{ padding: '1.5rem' }}>
+                    <div style={{ marginBottom: '1.25rem' }}>
+                      <h4 style={{ margin: 0, fontSize: '1.1rem', color: '#fff' }}>Gestión de Solicitudes de Vacaciones</h4>
+                      <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginTop: '0.2rem' }}>
+                        Aprueba o deniega los días solicitados por los empleados.
+                      </p>
+                    </div>
+
+                    <div className="vacation-requests-list">
+                      {vacations.map(req => (
+                        <div key={req.id} className="glass-card vacation-request-card">
+                          <div className="vacation-info">
+                            <span className="vacation-dates">{req.startDate} al {req.endDate}</span>
+                            <span className="vacation-employee">Solicitado por: <strong>{req.employeeName}</strong></span>
+                            <span className="vacation-reason">Motivo: {req.reason}</span>
+                          </div>
+                          <div className="d-flex align-center gap-3">
+                            <span className={`badge ${req.status === 'Pendiente' ? 'badge-quote' : req.status === 'Aprobado' ? 'badge-completed' : 'badge-new'}`} style={{ marginRight: '1rem' }}>
+                              {req.status}
+                            </span>
+                            {req.status === 'Pendiente' && (
+                              <>
+                                <button className="btn-primary" style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }} onClick={() => handleApproveVacation(req.id, 'Aprobado')}>Aprobar</button>
+                                <button className="btn-secondary text-danger" style={{ padding: '0.5rem 1rem', fontSize: '0.85rem' }} onClick={() => handleApproveVacation(req.id, 'Rechazado')}>Rechazar</button>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </main>
@@ -3083,6 +4666,370 @@ function App() {
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* 3. Modal: Add/Edit Internal User */}
+      {showUserModal && (
+        <div className="modal-overlay">
+          <div className="glass-card modal-content" style={{ maxWidth: '540px' }}>
+            <div className="modal-header">
+              <h3>{selectedUserForEdit ? 'Editar Usuario Interno' : 'Nuevo Usuario Interno'}</h3>
+              <button className="btn-icon-only" onClick={() => setShowUserModal(false)}>X</button>
+            </div>
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              const formData = new FormData(e.target);
+              const userData = {
+                id: selectedUserForEdit ? selectedUserForEdit.id : Date.now(),
+                name: formData.get('userName'),
+                role: formData.get('userRole'),
+                specialty: formData.get('userSpecialty'),
+                phone: formData.get('userPhone'),
+                email: formData.get('userEmail'),
+                status: formData.get('userStatus'),
+                avatar: selectedUserForEdit ? selectedUserForEdit.avatar : '👤'
+              };
+              handleSaveUser(userData);
+            }}>
+              <div className="form-group">
+                <label>Nombre Completo *</label>
+                <input type="text" name="userName" className="form-control" defaultValue={selectedUserForEdit?.name || ''} required />
+              </div>
+              <div className="grid-2">
+                <div className="form-group">
+                  <label>Rol en Empresa *</label>
+                  <select name="userRole" className="form-control" defaultValue={selectedUserForEdit?.role || 'Técnico Instalador'} required>
+                    <option value="Administrador">Administrador</option>
+                    <option value="Administración">Administración</option>
+                    <option value="Responsable Técnico">Responsable Técnico</option>
+                    <option value="Técnico Instalador">Técnico Instalador</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Especialidad Técnica *</label>
+                  <select name="userSpecialty" className="form-control" defaultValue={selectedUserForEdit?.specialty || 'Climatización'} required>
+                    <option value="Climatización">Climatización (Splits / Conductos)</option>
+                    <option value="Frigorista">Frigorista Certificado</option>
+                    <option value="Aerotermia">Aerotermia y Suelo Radiante</option>
+                    <option value="Ayudante">Ayudante / En Formación</option>
+                    <option value="Gestión Oficina">Gestión Oficina</option>
+                  </select>
+                </div>
+              </div>
+              <div className="grid-2">
+                <div className="form-group">
+                  <label>Teléfono *</label>
+                  <input type="text" name="userPhone" className="form-control" defaultValue={selectedUserForEdit?.phone || '+34 600 000 000'} required />
+                </div>
+                <div className="form-group">
+                  <label>Email Corporativo *</label>
+                  <input type="email" name="userEmail" className="form-control" defaultValue={selectedUserForEdit?.email || 'usuario@klimatik.es'} required />
+                </div>
+              </div>
+              <div className="form-group">
+                <label>Estado del Usuario *</label>
+                <select name="userStatus" className="form-control" defaultValue={selectedUserForEdit?.status || 'activo'} required>
+                  <option value="activo">🟢 Activo (Aparece en asignaciones y listas)</option>
+                  <option value="inactivo">🔴 Inactivo (Mantiene historial, excluido de asignaciones)</option>
+                </select>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn-secondary" onClick={() => setShowUserModal(false)}>Cancelar</button>
+                <button type="submit" className="btn-primary">Guardar Usuario</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 4. Modal: Lead CRUD */}
+      {showLeadModal && (
+        <div className="modal-overlay">
+          <div className="glass-card modal-content" style={{ maxWidth: '600px' }}>
+            <div className="modal-header">
+              <h3>{selectedLeadForEdit ? 'Editar Lead' : 'Nuevo Lead de Climatización'}</h3>
+              <button className="btn-icon-only" onClick={() => setShowLeadModal(false)}>X</button>
+            </div>
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              const fd = new FormData(e.target);
+              const leadData = {
+                id: selectedLeadForEdit ? selectedLeadForEdit.id : `lead-${Date.now()}`,
+                name: fd.get('leadName'),
+                company: fd.get('leadCompany') || 'Particular',
+                phone: fd.get('leadPhone'),
+                email: fd.get('leadEmail'),
+                type: fd.get('leadType'),
+                address: fd.get('leadAddress'),
+                description: fd.get('leadDesc'),
+                origin: fd.get('leadOrigin'),
+                status: selectedLeadForEdit ? selectedLeadForEdit.status : 'Nuevo',
+                date: selectedLeadForEdit ? selectedLeadForEdit.date : new Date().toISOString().split('T')[0],
+                totalPrice: parseFloat(fd.get('leadPrice')) || 500,
+                daysWithoutResponse: selectedLeadForEdit ? selectedLeadForEdit.daysWithoutResponse : 0
+              };
+              if (selectedLeadForEdit) {
+                setLeads(leads.map(l => l.id === leadData.id ? { ...l, ...leadData } : l));
+                showToast('Lead actualizado correctamente.', 'success');
+              } else {
+                setLeads([leadData, ...leads]);
+                showToast('Nuevo lead registrado.', 'success');
+              }
+              setShowLeadModal(false);
+            }}>
+              <div className="grid-2">
+                <div className="form-group">
+                  <label>Nombre / Contacto *</label>
+                  <input type="text" name="leadName" className="form-control" defaultValue={selectedLeadForEdit?.name || ''} required />
+                </div>
+                <div className="form-group">
+                  <label>Empresa / Particular</label>
+                  <input type="text" name="leadCompany" className="form-control" placeholder="Particular o Razón Social" defaultValue={selectedLeadForEdit?.company || 'Particular'} />
+                </div>
+              </div>
+              <div className="grid-2">
+                <div className="form-group">
+                  <label>Teléfono *</label>
+                  <input type="text" name="leadPhone" className="form-control" defaultValue={selectedLeadForEdit?.phone || ''} required />
+                </div>
+                <div className="form-group">
+                  <label>Email</label>
+                  <input type="email" name="leadEmail" className="form-control" defaultValue={selectedLeadForEdit?.email || ''} />
+                </div>
+              </div>
+              <div className="grid-2">
+                <div className="form-group">
+                  <label>Tipo de Intervención</label>
+                  <select name="leadType" className="form-control" defaultValue={selectedLeadForEdit?.type || 'Residencial'}>
+                    <option value="Residencial">Residencial Split/Multisplit</option>
+                    <option value="Industrial">Industrial / Conductos / Local</option>
+                    <option value="Aerotermia">Aerotermia / Suelo Radiante</option>
+                    <option value="Urgencia">Urgencia 24h / Avería</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Canal de Origen</label>
+                  <select name="leadOrigin" className="form-control" defaultValue={selectedLeadForEdit?.origin || 'Formulario Web'}>
+                    <option value="Formulario Web">Formulario Web</option>
+                    <option value="WhatsApp Directo">WhatsApp Directo</option>
+                    <option value="Llamada Telefónica">Llamada Telefónica</option>
+                    <option value="Referido / Recomendación">Referido / Recomendación</option>
+                  </select>
+                </div>
+              </div>
+              <div className="form-group">
+                <label>Dirección de la Instalación *</label>
+                <input type="text" name="leadAddress" className="form-control" defaultValue={selectedLeadForEdit?.address || ''} required />
+              </div>
+              <div className="form-group">
+                <label>Necesidad o Descripción Técnica</label>
+                <textarea name="leadDesc" className="form-control" rows="2" defaultValue={selectedLeadForEdit?.description || ''}></textarea>
+              </div>
+              <div className="form-group">
+                <label>Importe Estimado (€)</label>
+                <input type="number" name="leadPrice" className="form-control" defaultValue={selectedLeadForEdit?.totalPrice || 500} />
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn-secondary" onClick={() => setShowLeadModal(false)}>Cancelar</button>
+                <button type="submit" className="btn-primary">Guardar Lead</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 5. Modal: Client CRUD */}
+      {showClientModal && (
+        <div className="modal-overlay">
+          <div className="glass-card modal-content" style={{ maxWidth: '640px' }}>
+            <div className="modal-header">
+              <h3>{selectedClientForEdit ? 'Editar Ficha de Cliente' : 'Alta de Nuevo Cliente'}</h3>
+              <button className="btn-icon-only" onClick={() => setShowClientModal(false)}>X</button>
+            </div>
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              const fd = new FormData(e.target);
+              const addressesRaw = fd.get('clientAddresses') || '';
+              const addrs = addressesRaw.split('\n').map(a => a.trim()).filter(Boolean);
+              const clientData = {
+                id: selectedClientForEdit ? selectedClientForEdit.id : undefined,
+                name: fd.get('clientName'),
+                clientType: fd.get('clientType'),
+                company: fd.get('clientCompany') || 'Particular',
+                nifCif: fd.get('clientNif'),
+                phone: fd.get('clientPhone'),
+                email: fd.get('clientEmail'),
+                contactPerson: fd.get('clientContactPerson'),
+                mainAddress: fd.get('clientMainAddress'),
+                installationAddresses: addrs.length > 0 ? addrs : [fd.get('clientMainAddress')],
+                notes: fd.get('clientNotes'),
+                status: fd.get('clientStatus')
+              };
+              handleSaveClient(clientData);
+            }}>
+              <div className="grid-2">
+                <div className="form-group">
+                  <label>Nombre / Razón Social *</label>
+                  <input type="text" name="clientName" className="form-control" defaultValue={selectedClientForEdit?.name || ''} required />
+                </div>
+                <div className="form-group">
+                  <label>Tipo de Cliente *</label>
+                  <select name="clientType" className="form-control" defaultValue={selectedClientForEdit?.clientType || 'Particular'}>
+                    <option value="Particular">Particular</option>
+                    <option value="Empresa">Empresa / Negocio</option>
+                  </select>
+                </div>
+              </div>
+              <div className="grid-2">
+                <div className="form-group">
+                  <label>NIF / CIF *</label>
+                  <input type="text" name="clientNif" className="form-control" defaultValue={selectedClientForEdit?.nifCif || ''} placeholder="Ej. B-12345678 o 12345678Z" required />
+                </div>
+                <div className="form-group">
+                  <label>Persona de Contacto</label>
+                  <input type="text" name="clientContactPerson" className="form-control" defaultValue={selectedClientForEdit?.contactPerson || ''} />
+                </div>
+              </div>
+              <div className="grid-2">
+                <div className="form-group">
+                  <label>Teléfono de Contacto *</label>
+                  <input type="text" name="clientPhone" className="form-control" defaultValue={selectedClientForEdit?.phone || ''} required />
+                </div>
+                <div className="form-group">
+                  <label>Email *</label>
+                  <input type="email" name="clientEmail" className="form-control" defaultValue={selectedClientForEdit?.email || ''} required />
+                </div>
+              </div>
+              <div className="form-group">
+                <label>Dirección Principal / Fiscal *</label>
+                <input type="text" name="clientMainAddress" className="form-control" defaultValue={selectedClientForEdit?.mainAddress || ''} required />
+              </div>
+              <div className="form-group">
+                <label>Direcciones de Instalación / Centros (Una por línea)</label>
+                <textarea 
+                  name="clientAddresses" 
+                  className="form-control" 
+                  rows="3" 
+                  placeholder="Calle Mayor 15, Madrid"
+                  defaultValue={selectedClientForEdit?.installationAddresses?.join('\n') || ''}
+                ></textarea>
+              </div>
+              <div className="grid-2">
+                <div className="form-group">
+                  <label>Notas de Seguimiento</label>
+                  <textarea name="clientNotes" className="form-control" rows="2" defaultValue={selectedClientForEdit?.notes || ''}></textarea>
+                </div>
+                <div className="form-group">
+                  <label>Estado del Cliente</label>
+                  <select name="clientStatus" className="form-control" defaultValue={selectedClientForEdit?.status || 'activo'}>
+                    <option value="activo">🟢 Activo</option>
+                    <option value="inactivo">🔴 Inactivo / Archivado</option>
+                  </select>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn-secondary" onClick={() => setShowClientModal(false)}>Cancelar</button>
+                <button type="submit" className="btn-primary">Guardar Cliente</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 6. Modal: Ficha 360º del Cliente */}
+      {selectedClientFor360View && (
+        <div className="modal-overlay">
+          <div className="glass-card modal-content" style={{ maxWidth: '800px', width: '90%' }}>
+            <div className="modal-header">
+              <div>
+                <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <User size={20} className="text-cool" /> Ficha 360º: {selectedClientFor360View.name}
+                </h3>
+                <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                  {selectedClientFor360View.clientType} • NIF/CIF: <strong>{selectedClientFor360View.nifCif}</strong>
+                </span>
+              </div>
+              <button className="btn-icon-only" onClick={() => setSelectedClientFor360View(null)}>X</button>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem', margin: '1rem 0' }}>
+              <div className="glass-card" style={{ padding: '1rem', background: 'rgba(255,255,255,0.02)' }}>
+                <h4 style={{ margin: '0 0 0.5rem 0', fontSize: '0.9rem', color: '#fff' }}>📍 Direcciones de Instalación</h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                  {selectedClientFor360View.installationAddresses?.map((addr, idx) => (
+                    <div key={idx} className="client-address-pill">
+                      <MapPin size={12} className="text-cool" /> {addr} {idx === 0 ? '(Principal)' : ''}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="glass-card" style={{ padding: '1rem', background: 'rgba(255,255,255,0.02)' }}>
+                <h4 style={{ margin: '0 0 0.5rem 0', fontSize: '0.9rem', color: '#fff' }}>🔗 Trazabilidad & Origen Lead</h4>
+                <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', margin: 0 }}>
+                  {selectedClientFor360View.originLeadId ? (
+                    <span>Convertido desde Lead <strong>#{selectedClientFor360View.originLeadId}</strong></span>
+                  ) : (
+                    <span>Registrado directamente en la plataforma el {selectedClientFor360View.createdAt || '2026-05-01'}</span>
+                  )}
+                </p>
+                <div style={{ marginTop: '0.5rem', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+                  {selectedClientFor360View.notes}
+                </div>
+              </div>
+            </div>
+
+            <div style={{ margin: '1.5rem 0 0.5rem 0' }}>
+              <h4 style={{ margin: '0 0 0.75rem 0', fontSize: '1rem', color: '#fff', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <FileText size={16} className="text-cool" /> Histórico de Presupuestos y Obras Vinculadas
+              </h4>
+              <div className="table-responsive">
+                <table className="klimatik-table">
+                  <thead>
+                    <tr>
+                      <th>Ref. / Tipo</th>
+                      <th>Dirección Instalación</th>
+                      <th>Descripción Servicio</th>
+                      <th>Importe (€)</th>
+                      <th>Estado Obra</th>
+                      <th>Parte Firmado</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {leads.filter(l => l.name.toLowerCase().includes(selectedClientFor360View.name.toLowerCase()) || l.email === selectedClientFor360View.email).length === 0 ? (
+                      <tr>
+                        <td colSpan="6" style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '2rem' }}>
+                          No hay obras grabadas aún para este cliente.
+                        </td>
+                      </tr>
+                    ) : (
+                      leads.filter(l => l.name.toLowerCase().includes(selectedClientFor360View.name.toLowerCase()) || l.email === selectedClientFor360View.email).map(l => (
+                        <tr key={l.id}>
+                          <td><span className="badge badge-new">{l.type}</span></td>
+                          <td style={{ fontSize: '0.82rem' }}>{l.address}</td>
+                          <td style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', maxWidth: '200px' }}>{l.description}</td>
+                          <td style={{ fontWeight: 700, color: 'var(--accent-cool)' }}>{l.totalPrice}€</td>
+                          <td>{getStatusBadge(l.status)}</td>
+                          <td>
+                            {l.signedParte ? (
+                              <span className="badge badge-completed">✅ Firmado ({l.signedParte.signedAt})</span>
+                            ) : (
+                              <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Pendiente</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div className="modal-footer">
+              <button className="btn-secondary" onClick={() => setSelectedClientFor360View(null)}>Cerrar Ficha</button>
+            </div>
           </div>
         </div>
       )}
